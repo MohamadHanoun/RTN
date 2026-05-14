@@ -15,6 +15,9 @@ export default function Navbar() {
         <a href="#rules" className="hover:text-white">
           Rules
         </a>
+        <a href="/tournaments" className="hover:text-white">
+          Tournaments
+        </a>
       </div>
 
       <a
