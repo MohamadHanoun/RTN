@@ -6,6 +6,7 @@ import { serverInfo } from "@/data/server";
 import { currentContent } from "@/content/siteContent";
 
 const navLinks = [
+  { label: currentContent.nav.about, href: "/about" },
   { label: currentContent.nav.rules, href: "/rules" },
   { label: currentContent.nav.roles, href: "/roles" },
   { label: currentContent.nav.staff, href: "/staff" },

@@ -6,6 +6,7 @@ export const siteContent = {
     inviteUrl: "https://discord.gg/zP8ptXVvKw",
 
     nav: {
+      about: "About",
       rules: "Rules",
       roles: "Roles",
       staff: "Staff",
@@ -36,6 +37,7 @@ export const siteContent = {
     inviteUrl: "https://discord.gg/zP8ptXVvKw",
 
     nav: {
+      about: "عن السيرفر",
       rules: "القوانين",
       roles: "الرتب",
       staff: "الإدارة",
