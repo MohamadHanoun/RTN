@@ -1,14 +1,14 @@
 export const serverFeatures = [
   {
-    title: "Active Community",
-    text: "Join a friendly and active Discord community with daily conversations.",
+    title: "Multi-Game Community",
+    text: "RTN brings players together from different electronic games, whether they play casually, competitively, or just want a place to hang out.",
   },
   {
-    title: "Gaming Events",
-    text: "Take part in events, game nights, tournaments, and giveaways.",
+    title: "Tournaments & Events",
+    text: "The server is prepared for future tournaments, community events, game nights, and organized competitions.",
   },
   {
-    title: "Level System",
-    text: "A future XP system will reward active members and show leaderboards.",
+    title: "Future XP System",
+    text: "A custom Discord bot will later track activity, levels, XP rewards, and community leaderboards.",
   },
 ];

@@ -1,8 +1,8 @@
 export const staffMembers = [
   {
     name: "Mohamad",
-    role: "Owner",
-    status: "Server Founder",
+    role: "Founder",
+    status: "RTN Founder",
   },
   {
     name: "Admin Team",
@@ -10,8 +10,13 @@ export const staffMembers = [
     status: "Coming soon",
   },
   {
-    name: "Moderators",
-    role: "Moderation Team",
+    name: "Moderation Team",
+    role: "Moderators",
+    status: "Coming soon",
+  },
+  {
+    name: "Tournament Team",
+    role: "Tournament Staff",
     status: "Coming soon",
   },
 ];
