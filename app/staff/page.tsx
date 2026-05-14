@@ -1,6 +1,7 @@
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
+import StaffCard from "@/components/StaffCard";
 import { staffMembers } from "@/data/staff";
 
 export default function StaffPage() {
@@ -9,26 +10,34 @@ export default function StaffPage() {
       <Navbar />
 
       <PageHeader
-        label="Staff Team"
-        title="Meet the team behind the community."
-        description="This page is prepared for future staff profiles, Discord avatars, and admin management."
+        label="RTN Staff"
+        title="The team behind The Noobs of Temple & Rift."
+        description="This page is prepared for RTN staff members, future Discord avatars, staff profiles, developer members, and admin management."
       />
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 md:grid-cols-2 lg:grid-cols-4">
-        {staffMembers.map((member) => (
-          <article
-            key={member.name}
-            className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center"
-          >
-            <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 text-3xl font-black">
-              {member.name.charAt(0)}
-            </div>
+      <section className="mx-auto max-w-7xl px-6 pb-24">
+        <div className="mb-10 rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-6">
+          <h2 className="mb-3 text-2xl font-bold text-cyan-300">
+            Staff Profiles Coming Later
+          </h2>
 
-            <h2 className="mb-2 text-2xl font-bold">{member.name}</h2>
-            <p className="text-indigo-300">{member.role}</p>
-            <p className="mt-4 text-gray-400">{member.status}</p>
-          </article>
-        ))}
+          <p className="leading-7 text-gray-300">
+            The current staff section uses simple placeholder cards. Later, this
+            page can show real Discord avatars, staff roles, developer profiles,
+            and live information from the database.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {staffMembers.map((member) => (
+            <StaffCard
+              key={member.name}
+              name={member.name}
+              role={member.role}
+              status={member.status}
+            />
+          ))}
+        </div>
       </section>
 
       <Footer />
