@@ -1,4 +1,5 @@
 import AdminModuleCard from "@/components/AdminModuleCard";
+import AdminOverview from "@/components/AdminOverview";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
@@ -15,17 +16,19 @@ export default function AdminPage() {
         description="This admin panel is prepared for future Discord login, database management, tournaments, XP settings, announcements, and live server statistics."
       />
 
+      <AdminOverview />
+
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-10 rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-6">
           <h2 className="mb-3 text-2xl font-bold text-yellow-300">
-                Admin Access Coming Soon
-            </h2>
+            Admin Access Coming Soon
+          </h2>
 
-            <p className="leading-7 text-gray-300">
-                This page is only a visual structure for now. Later, it will require
-                Discord login and RTN admin permission before anyone can manage the
-                website.
-            </p>
+          <p className="leading-7 text-gray-300">
+            This page is only a visual structure for now. Later, it will require
+            Discord login and RTN admin permission before anyone can manage the
+            website.
+          </p>
 
           <button
             disabled
@@ -33,6 +36,15 @@ export default function AdminPage() {
           >
             Login with Discord Coming Soon
           </button>
+        </div>
+
+        <div className="mb-10">
+          <h2 className="text-4xl font-black">Admin Modules</h2>
+          <p className="mt-4 max-w-2xl text-gray-300">
+            These sections are prepared for future management tools. Later, RTN admins
+            will be able to control website content, tournaments, XP settings, and
+            Discord-related data from here.
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
