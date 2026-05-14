@@ -6,6 +6,12 @@ export const serverRoles = [
       "Responsible for the main direction of RTN, long-term planning, and community management.",
   },
   {
+    name: "Developer",
+    color: "text-cyan-300",
+    description:
+      "Works on the RTN website, future Discord bot features, XP system, database tools, and technical improvements.",
+  },
+  {
     name: "Admin",
     color: "text-purple-300",
     description:

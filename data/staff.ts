@@ -1,8 +1,13 @@
 export const staffMembers = [
   {
-    name: "Mohamad",
+    name: "نعيم الشيخ",
     role: "Founder",
     status: "RTN Founder",
+  },
+  {
+    name: "Developer Team",
+    role: "Developers",
+    status: "Website, bot, XP system, and technical features",
   },
   {
     name: "Admin Team",

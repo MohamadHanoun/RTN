@@ -14,7 +14,7 @@ export default function StaffPage() {
         description="This page is prepared for future staff profiles, Discord avatars, and admin management."
       />
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 md:grid-cols-3">
+      <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 md:grid-cols-2 lg:grid-cols-4">
         {staffMembers.map((member) => (
           <article
             key={member.name}
