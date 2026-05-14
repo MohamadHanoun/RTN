@@ -9,9 +9,9 @@ export default function StatsPage() {
       <Navbar />
 
       <PageHeader
-        label="Server Stats"
-        title="Live Discord statistics will appear here."
-        description="For now these are static stats. Later, this page will connect to the Discord bot and database."
+        label="RTN Stats"
+        title="Real community statistics will live here."
+        description="For now, these numbers are placeholders. Later, this page will show live Discord stats collected       from the RTN bot and database."
       />
 
       <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 sm:grid-cols-2 lg:grid-cols-4">

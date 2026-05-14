@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s | The Noobs of Temple & Rift",
   },
   description:
-    "A gaming community website for electronic games, tournaments, announcements, XP leaderboard, Discord stats, and future bot integration.",
+    "A gaming community website for video games, tournaments, announcements, XP leaderboard, Discord stats, and future bot integration.",
   keywords: [
     "Discord",
     "Gaming",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Noobs of Temple & Rift",
     description:
-      "A gaming community for electronic games, tournaments, events, XP system, leaderboard, and Discord bot integration.",
+      "A gaming community for video games, tournaments, events, XP system, leaderboard, and Discord bot integration.",
     type: "website",
     siteName: "The Noobs of Temple & Rift",
   },

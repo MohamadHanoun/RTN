@@ -10,22 +10,22 @@ export default function AdminPage() {
       <Navbar />
 
       <PageHeader
-        label="Admin Panel"
-        title="Manage the community from one place."
-        description="This admin panel is prepared for future Discord login, database management, tournament control, XP settings, and live server statistics."
+        label="RTN Admin Panel"
+        title="Manage the RTN community from one place."
+        description="This admin panel is prepared for future Discord login, database management, tournaments, XP settings, announcements, and live server statistics."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-10 rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-6">
           <h2 className="mb-3 text-2xl font-bold text-yellow-300">
-            Admin Login Coming Soon
-          </h2>
+                Admin Access Coming Soon
+            </h2>
 
-          <p className="leading-7 text-gray-300">
-            This page is only a visual structure for now. Later, it will require
-            Discord login and admin permission before anyone can manage the
-            website.
-          </p>
+            <p className="leading-7 text-gray-300">
+                This page is only a visual structure for now. Later, it will require
+                Discord login and RTN admin permission before anyone can manage the
+                website.
+            </p>
 
           <button
             disabled

@@ -10,9 +10,9 @@ export default function AnnouncementsPage() {
       <Navbar />
 
       <PageHeader
-        label="Announcements"
-        title="Latest community news and updates."
-        description="This page will later be managed from the admin panel and connected to the database."
+        label="RTN Announcements"
+        title="News, updates, and community announcements."
+        description="This page will later be managed from the admin panel and used for tournament news, server updates,     and community events."
       />
 
       <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 md:grid-cols-2 lg:grid-cols-3">

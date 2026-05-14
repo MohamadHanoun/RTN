@@ -9,9 +9,9 @@ export default function RulesPage() {
       <Navbar />
 
       <PageHeader
-        label="Server Rules"
-        title="Read the rules before joining the community."
-        description="These rules help keep the server friendly, organized, and safe for everyone."
+        label="RTN Rules"
+        title="Keep the community fair, friendly, and fun."
+        description="These rules help The Noobs of Temple & Rift stay organized, respectful, and enjoyable for every    player in the community."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">

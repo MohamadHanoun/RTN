@@ -9,9 +9,9 @@ export default function RolesPage() {
       <Navbar />
 
       <PageHeader
-        label="Server Roles"
-        title="Explore the server roles and future ranking system."
-        description="This page will later connect with Discord roles and the XP system."
+        label="RTN Roles"
+        title="Roles that shape the community."
+        description="This page explains the main roles inside RTN. Later, these roles can be connected to Discord, XP       levels, tournaments, and admin tools."
       />
 
       <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 md:grid-cols-2 lg:grid-cols-3">

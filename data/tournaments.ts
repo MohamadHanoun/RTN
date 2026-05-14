@@ -21,7 +21,7 @@ export const tournaments: Tournament[] = [
     teams: "Open slots",
     status: "upcoming",
     description:
-      "A future RTN tournament designed for players from different electronic games. Registration will open later through the website.",
+      "A future RTN tournament designed for players from different video games. Registration will open later through the website.",
   },
   {
     id: 2,

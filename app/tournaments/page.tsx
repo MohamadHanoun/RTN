@@ -12,10 +12,9 @@ export default function TournamentsPage() {
 
       <section id="tournaments" className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-10">
-          <h2 className="text-4xl font-black">Available Tournaments</h2>
+          <h2 className="text-4xl font-black">RTN Tournaments</h2>
           <p className="mt-4 max-w-2xl text-gray-300">
-            Here you will later find active tournaments, registration forms,
-            team slots, match schedules, and tournament results.
+            Here you will later find active RTN tournaments, registration forms, team slots, match schedules, brackets, and tournament results.
           </p>
         </div>
 

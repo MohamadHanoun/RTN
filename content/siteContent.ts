@@ -20,7 +20,7 @@ export const siteContent = {
       label: "Gaming Community",
       title: "A place for players, tournaments, and good moments.",
       description:
-        "The Noobs of Temple & Rift is a gaming community for players who enjoy electronic games, tournaments, events, voice chats, and future XP rewards connected with our own Discord bot.",
+        "The Noobs of Temple & Rift is a gaming community for players who enjoy video games, tournaments, events, voice chats, and future XP rewards connected with our own Discord bot.",
       highlightTitle: "Community Highlights",
       highlightDescription:
         "Tournaments, live Discord stats, XP levels, leaderboards, announcements, and admin tools will be added step by step.",
