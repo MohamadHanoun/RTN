@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Noobs of Temple & Rift — RTN
 
-## Getting Started
+Official website for **The Noobs of Temple & Rift (RTN)**, a modern Discord community focused on electronic games, tournaments, community events, XP progression, and future Discord bot integration.
 
-First, run the development server:
+Live website:  
+https://rtn-ebon.vercel.app/
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## About the Project
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+RTN is a gaming community website built to support a Discord server with a clean and expandable structure.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The current version is a static website prepared for future features such as:
 
-## Learn More
+- Discord login
+- Admin panel
+- Tournament registration
+- XP and level system
+- Live Discord statistics
+- Custom Discord bot
+- PostgreSQL database integration
 
-To learn more about Next.js, take a look at the following resources:
+The project is built with scalability in mind, so future features can be added without rebuilding the website from scratch.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+This project uses:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Prisma
+- PostgreSQL-ready structure
+- Discord.js-ready bot structure
+- Vercel for deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Current Pages
+
+The website currently includes:
+
+- Home
+- About
+- Rules
+- Roles
+- Staff
+- Stats
+- Tournaments
+- Leaderboard
+- Announcements
+- Admin Panel placeholder
+- 404 Not Found page
+
+---
+
+## Future Features
+
+Planned features include:
+
+### Database
+
+The project is prepared for PostgreSQL using Prisma.
+
+Future database features:
+
+- Store server settings
+- Manage rules
+- Manage roles
+- Manage staff members
+- Manage tournaments
+- Manage announcements
+- Store Discord users
+- Store XP logs
+- Store leaderboard data
+
+### Admin Panel
+
+The admin panel is currently a visual placeholder.
+
+Future admin features:
+
+- Discord login for admins
+- Manage website content
+- Create and edit announcements
+- Create and manage tournaments
+- Manage roles and staff
+- View Discord statistics
+- Control XP system settings
+
+### Discord Bot
+
+The project includes a prepared bot structure.
+
+Future bot features:
+
+- XP tracking
+- Level system
+- Leaderboard updates
+- Discord server statistics
+- Tournament notifications
+- Auto roles
+- Activity logs
+
+---
+
+## Project Structure
+
+```txt
+app/
+  api/
+  about/
+  admin/
+  announcements/
+  leaderboard/
+  roles/
+  rules/
+  staff/
+  stats/
+  tournaments/
+
+components/
+  Reusable UI components
+
+content/
+  Website content and bilingual content foundation
+
+data/
+  Temporary static data used before database integration
+
+lib/
+  Utility and config files
+
+bot/
+  Future Discord bot structure
+
+prisma/
+  Prisma schema for future database models
+
+public/
+  Static assets
