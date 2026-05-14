@@ -3,31 +3,33 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "DISCORE Community",
-    template: "%s | DISCORE Community",
+    default: "The Noobs of Temple & Rift",
+    template: "%s | The Noobs of Temple & Rift",
   },
   description:
-    "A modern Discord community website for rules, roles, tournaments, announcements, leaderboard, and future Discord bot integration.",
+    "A gaming community website for electronic games, tournaments, announcements, XP leaderboard, Discord stats, and future bot integration.",
   keywords: [
     "Discord",
-    "Community",
     "Gaming",
+    "Community",
     "Tournaments",
     "Leaderboard",
     "XP System",
     "Discord Bot",
+    "The Noobs of Temple & Rift",
+    "RTN",
   ],
-  authors: [{ name: "DISCORE Community" }],
-  creator: "DISCORE Community",
+  authors: [{ name: "The Noobs of Temple & Rift" }],
+  creator: "The Noobs of Temple & Rift",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "DISCORE Community",
+    title: "The Noobs of Temple & Rift",
     description:
-      "A modern Discord community website with tournaments, XP system, leaderboard, announcements, and future bot integration.",
+      "A gaming community for electronic games, tournaments, events, XP system, leaderboard, and Discord bot integration.",
     type: "website",
-    siteName: "DISCORE Community",
+    siteName: "The Noobs of Temple & Rift",
   },
 };
 

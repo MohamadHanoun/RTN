@@ -1,0 +1,63 @@
+export const siteContent = {
+  en: {
+    siteName: "The Noobs of Temple & Rift",
+    shortName: "RTN",
+    highlightedName: "Community",
+    inviteUrl: "https://discord.gg/zP8ptXVvKw",
+
+    nav: {
+      rules: "Rules",
+      roles: "Roles",
+      staff: "Staff",
+      stats: "Stats",
+      leaderboard: "Leaderboard",
+      tournaments: "Tournaments",
+      announcements: "Announcements",
+      joinDiscord: "Join Discord",
+    },
+
+    home: {
+      label: "Gaming Community",
+      title: "A place for players, tournaments, and good moments.",
+      description:
+        "The Noobs of Temple & Rift is a gaming community for players who enjoy electronic games, tournaments, events, voice chats, and future XP rewards connected with our own Discord bot.",
+      highlightTitle: "Community Highlights",
+      highlightDescription:
+        "Tournaments, live Discord stats, XP levels, leaderboards, announcements, and admin tools will be added step by step.",
+    },
+
+    footer: "© 2026 The Noobs of Temple & Rift. All rights reserved.",
+  },
+
+  ar: {
+    siteName: "The Noobs of Temple & Rift",
+    shortName: "RTN",
+    highlightedName: "Community",
+    inviteUrl: "https://discord.gg/zP8ptXVvKw",
+
+    nav: {
+      rules: "القوانين",
+      roles: "الرتب",
+      staff: "الإدارة",
+      stats: "الإحصائيات",
+      leaderboard: "المتصدرون",
+      tournaments: "البطولات",
+      announcements: "الإعلانات",
+      joinDiscord: "انضم إلى الديسكورد",
+    },
+
+    home: {
+      label: "مجتمع ألعاب",
+      title: "مكان للاعبين، البطولات، واللحظات الممتعة.",
+      description:
+        "The Noobs of Temple & Rift هو مجتمع مخصص لعشّاق الألعاب الإلكترونية، البطولات، الفعاليات، الرومات الصوتية، ونظام XP مستقبلي مرتبط ببوت خاص بالسيرفر.",
+      highlightTitle: "مميزات المجتمع",
+      highlightDescription:
+        "سيتم إضافة البطولات، إحصائيات الديسكورد الحقيقية، نظام XP، لوحة المتصدرين، الإعلانات، وأدوات الإدارة بشكل تدريجي.",
+    },
+
+    footer: "© 2026 The Noobs of Temple & Rift. جميع الحقوق محفوظة.",
+  },
+};
+
+export const currentContent = siteContent.en;

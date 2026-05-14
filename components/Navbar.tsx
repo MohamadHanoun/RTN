@@ -3,15 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { serverInfo } from "@/data/server";
+import { currentContent } from "@/content/siteContent";
 
 const navLinks = [
-  { label: "Rules", href: "/rules" },
-  { label: "Roles", href: "/roles" },
-  { label: "Staff", href: "/staff" },
-  { label: "Stats", href: "/stats" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Tournaments", href: "/tournaments" },
-  { label: "Announcements", href: "/announcements" },
+  { label: currentContent.nav.rules, href: "/rules" },
+  { label: currentContent.nav.roles, href: "/roles" },
+  { label: currentContent.nav.staff, href: "/staff" },
+  { label: currentContent.nav.stats, href: "/stats" },
+  { label: currentContent.nav.leaderboard, href: "/leaderboard" },
+  { label: currentContent.nav.tournaments, href: "/tournaments" },
+  { label: currentContent.nav.announcements, href: "/announcements" },
 ];
 
 export default function Navbar() {
@@ -40,7 +41,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             className="rounded-full bg-indigo-500 px-5 py-2 text-sm font-semibold transition hover:bg-indigo-400"
           >
-            Join Discord
+            {currentContent.nav.joinDiscord}
           </a>
         </div>
 
@@ -72,7 +73,7 @@ export default function Navbar() {
               rel="noopener noreferrer"
               className="rounded-xl bg-indigo-500 px-4 py-3 text-center font-semibold text-white transition hover:bg-indigo-400"
             >
-              Join Discord
+              {currentContent.nav.joinDiscord}
             </a>
           </div>
         </div>
