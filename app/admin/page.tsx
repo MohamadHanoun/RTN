@@ -15,6 +15,8 @@ import AdminRuleForm from "@/components/AdminRuleForm";
 import AdminRuleList from "@/components/AdminRuleList";
 import AdminRoleForm from "@/components/AdminRoleForm";
 import AdminRoleList from "@/components/AdminRoleList";
+import AdminStaffForm from "@/components/AdminStaffForm";
+import AdminStaffList from "@/components/AdminStaffList";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -153,6 +155,8 @@ export default async function AdminPage() {
       <AdminRuleList />
       <AdminRoleForm />
       <AdminRoleList />
+      <AdminStaffForm />
+      <AdminStaffList />
 
       
 
