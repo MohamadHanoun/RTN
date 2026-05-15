@@ -3,6 +3,7 @@ import {
   updateTournamentStatus,
 } from "@/actions/tournamentActions";
 import { prisma } from "@/lib/prisma";
+import ConfirmDeleteForm from "./ConfirmDeleteForm";
 
 async function getTournaments() {
   return prisma.tournament.findMany({
@@ -96,16 +97,11 @@ export default async function AdminTournamentList() {
                     </button>
                   </form>
 
-                  <form action={deleteTournament}>
-                    <input type="hidden" name="id" value={tournament.id} />
-
-                    <button
-                      type="submit"
-                      className="rounded-xl border border-red-500/20 px-4 py-2 font-bold text-red-300 transition hover:bg-red-500/10"
-                    >
-                      Delete
-                    </button>
-                  </form>
+                  <ConfirmDeleteForm
+                    id={tournament.id}
+                    action={deleteTournament}
+                    message="Are you sure you want to delete this tournament?"
+                    />
                 </div>
               </article>
             ))}

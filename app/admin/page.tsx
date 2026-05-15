@@ -11,6 +11,8 @@ import AdminAnnouncementForm from "@/components/AdminAnnouncementForm";
 import AdminAnnouncementList from "@/components/AdminAnnouncementList";
 import AdminTournamentForm from "@/components/AdminTournamentForm";
 import AdminTournamentList from "@/components/AdminTournamentList";
+import AdminRuleForm from "@/components/AdminRuleForm";
+import AdminRuleList from "@/components/AdminRuleList";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -145,6 +147,8 @@ export default async function AdminPage() {
       <AdminAnnouncementList />
       <AdminTournamentForm />
       <AdminTournamentList />
+      <AdminRuleForm />
+      <AdminRuleList />
 
       
 

@@ -4,6 +4,7 @@ import {
   toggleAnnouncementPublished,
 } from "@/actions/announcementActions";
 import { prisma } from "@/lib/prisma";
+import ConfirmDeleteForm from "@/components/ConfirmDeleteForm";
 
 async function getAnnouncements() {
   return prisma.announcement.findMany({
@@ -108,16 +109,11 @@ export default async function AdminAnnouncementList() {
                     </button>
                   </form>
 
-                  <form action={deleteAnnouncement}>
-                    <input type="hidden" name="id" value={announcement.id} />
-
-                    <button
-                      type="submit"
-                      className="rounded-xl border border-red-500/20 px-4 py-2 font-bold text-red-300 transition hover:bg-red-500/10"
-                    >
-                      Delete
-                    </button>
-                  </form>
+                  <ConfirmDeleteForm
+                    id={announcement.id}
+                    action={deleteAnnouncement}
+                    message="Are you sure you want to delete this announcement?"
+                  />
                 </div>
               </article>
             ))}
