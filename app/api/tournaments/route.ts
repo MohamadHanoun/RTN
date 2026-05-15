@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import type { Tournament } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
@@ -9,7 +12,7 @@ export async function GET() {
       },
     });
 
-    const formattedTournaments = tournaments.map((tournament) => ({
+    const formattedTournaments = tournaments.map((tournament: Tournament) => ({
       id: tournament.id,
       title: tournament.title,
       game: tournament.game,
