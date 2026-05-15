@@ -18,6 +18,7 @@ import AdminStaffList from "@/components/AdminStaffList";
 import AdminTabNavigation from "@/components/AdminTabNavigation";
 import { adminModules } from "@/data/admin";
 import { prisma } from "@/lib/prisma";
+import AdminToast from "@/components/AdminToast";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,8 @@ export const dynamic = "force-dynamic";
 type AdminPageProps = {
   searchParams: Promise<{
     tab?: string;
+    message?: string;
+    type?: string;
   }>;
 };
 
@@ -156,6 +159,7 @@ function renderAdminTab(activeTab: string, overviewItems: Awaited<ReturnType<typ
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const session = await auth();
   const params = await searchParams;
+  const toastType = params.type === "error" ? "error" : "success";
 
   const activeTab =
     params.tab && allowedTabs.includes(params.tab) ? params.tab : "overview";
@@ -246,6 +250,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       </section>
 
       <AdminTabNavigation activeTab={activeTab} />
+      <AdminToast message={params.message} type={toastType} />
 
       {renderAdminTab(activeTab, overviewItems)}
 

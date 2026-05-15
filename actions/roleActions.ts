@@ -71,7 +71,7 @@ export async function createRole(formData: FormData) {
   });
 
   revalidateRolePages();
-  redirect("/admin?tab=roles");
+  redirect("/admin?tab=roles&message=Role created successfully");
 }
 
 export async function updateRole(formData: FormData) {
@@ -98,7 +98,7 @@ export async function updateRole(formData: FormData) {
   });
 
   revalidateRolePages();
-  redirect("/admin?tab=roles");
+  redirect("/admin?tab=roles&message=Role updated successfully");
 }
 
 export async function toggleRoleActive(formData: FormData) {
@@ -121,7 +121,7 @@ export async function toggleRoleActive(formData: FormData) {
   });
 
   revalidateRolePages();
-  redirect("/admin?tab=roles");
+  redirect("/admin?tab=roles&message=Role visibility updated");
 }
 
 export async function deleteRole(formData: FormData) {

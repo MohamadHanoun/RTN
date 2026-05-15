@@ -46,7 +46,7 @@ export async function createAnnouncement(formData: FormData) {
   });
 
   revalidateAnnouncementPages();
-  redirect("/admin?tab=announcements");
+  redirect("/admin?tab=announcements&message=Announcement created successfully");
 }
 
 export async function toggleAnnouncementPublished(formData: FormData) {
@@ -69,7 +69,7 @@ export async function toggleAnnouncementPublished(formData: FormData) {
   });
 
   revalidateAnnouncementPages();
-  redirect("/admin?tab=announcements");
+  redirect("/admin?tab=announcements&message=Announcement visibility updated");
 }
 
 export async function toggleAnnouncementImportant(formData: FormData) {
@@ -92,7 +92,7 @@ export async function toggleAnnouncementImportant(formData: FormData) {
   });
 
   revalidateAnnouncementPages();
-  redirect("/admin?tab=announcements");
+  redirect("/admin?tab=announcements&message=Announcement importance updated");
 }
 
 export async function deleteAnnouncement(formData: FormData) {

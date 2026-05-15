@@ -55,7 +55,7 @@ export async function createTournament(formData: FormData) {
   });
 
   revalidateTournamentPages();
-  redirect("/admin?tab=tournaments");
+  redirect("/admin?tab=tournaments&message=Tournament created successfully");
 }
 
 export async function updateTournamentStatus(formData: FormData) {
@@ -78,7 +78,7 @@ export async function updateTournamentStatus(formData: FormData) {
   });
 
   revalidateTournamentPages();
-  redirect("/admin?tab=tournaments");
+  redirect("/admin?tab=tournaments&message=Tournament status updated");
 }
 
 export async function deleteTournament(formData: FormData) {

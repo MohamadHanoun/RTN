@@ -73,7 +73,7 @@ export async function createStaffMember(formData: FormData) {
   });
 
   revalidateStaffPages();
-  redirect("/admin?tab=staff");
+  redirect("/admin?tab=staff&message=Staff member created successfully");
 }
 
 export async function updateStaffMember(formData: FormData) {
@@ -102,6 +102,7 @@ export async function updateStaffMember(formData: FormData) {
   });
 
   revalidateStaffPages();
+  redirect("/admin?tab=staff&message=Staff member updated successfully");
 }
 
 export async function toggleStaffMemberActive(formData: FormData) {
@@ -124,6 +125,7 @@ export async function toggleStaffMemberActive(formData: FormData) {
   });
 
   revalidateStaffPages();
+  redirect("/admin?tab=staff&message=Staff visibility updated");
 }
 
 export async function deleteStaffMember(formData: FormData) {
