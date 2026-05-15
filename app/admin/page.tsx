@@ -1,9 +1,11 @@
 import AdminModuleCard from "@/components/AdminModuleCard";
 import AdminOverview from "@/components/AdminOverview";
+import { DiscordLoginButton, LogoutButton } from "@/components/AuthButtons";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import { adminModules } from "@/data/admin";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -49,6 +51,62 @@ async function getAdminOverview() {
 }
 
 export default async function AdminPage() {
+  const session = await auth();
+
+  if (!session?.user) {
+    return (
+      <main className="min-h-screen bg-[#0b0f1a] text-white">
+        <Navbar />
+
+        <section className="mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-indigo-400">
+            RTN Admin Login
+          </p>
+
+          <h1 className="mb-6 text-5xl font-black md:text-7xl">
+            Admin access required.
+          </h1>
+
+          <p className="mb-8 max-w-xl leading-8 text-gray-300">
+            This page is protected. Login with Discord to continue to the RTN
+            admin panel.
+          </p>
+
+          <DiscordLoginButton />
+        </section>
+
+        <Footer />
+      </main>
+    );
+  }
+
+  if (!session.user.isAdmin) {
+    return (
+      <main className="min-h-screen bg-[#0b0f1a] text-white">
+        <Navbar />
+
+        <section className="mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-red-400">
+            Access Denied
+          </p>
+
+          <h1 className="mb-6 text-5xl font-black md:text-7xl">
+            You are not an RTN admin.
+          </h1>
+
+          <p className="mb-8 max-w-xl leading-8 text-gray-300">
+            You are logged in as {session.user.name}, but this Discord account
+            does not have admin access to the RTN admin panel.
+          </p>
+
+          <LogoutButton />
+        </section>
+
+        <Footer />
+      </main>
+    );
+  }
+
   const overviewItems = await getAdminOverview();
 
   return (
@@ -58,31 +116,29 @@ export default async function AdminPage() {
       <PageHeader
         label="RTN Admin Panel"
         title="Manage the RTN community from one place."
-        description="This admin panel is connected to the database and prepared for future Discord login, database management, tournaments, XP settings, announcements, and live server statistics."
+        description="This admin panel is protected with Discord login and prepared for future database management, tournaments, XP settings, announcements, and live server statistics."
       />
+
+      <section className="mx-auto max-w-7xl px-6 pb-8">
+        <div className="rounded-3xl border border-green-500/20 bg-green-500/10 p-6">
+          <h2 className="mb-3 text-2xl font-bold text-green-300">
+            Logged in as RTN Admin
+          </h2>
+
+          <p className="leading-7 text-gray-300">
+            Welcome, {session.user.name}. This dashboard is currently read-only.
+            Editing tools will be added later.
+          </p>
+
+          <div className="mt-6">
+            <LogoutButton />
+          </div>
+        </div>
+      </section>
 
       <AdminOverview items={overviewItems} />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
-        <div className="mb-10 rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-6">
-          <h2 className="mb-3 text-2xl font-bold text-yellow-300">
-            Admin Access Coming Soon
-          </h2>
-
-          <p className="leading-7 text-gray-300">
-            This page is only a visual and read-only structure for now. Later,
-            it will require Discord login and RTN admin permission before anyone
-            can manage the website.
-          </p>
-
-          <button
-            disabled
-            className="mt-6 cursor-not-allowed rounded-xl border border-white/10 px-6 py-3 font-bold text-gray-400"
-          >
-            Login with Discord Coming Soon
-          </button>
-        </div>
-
         <div className="mb-10">
           <h2 className="text-4xl font-black">Admin Modules</h2>
           <p className="mt-4 max-w-2xl text-gray-300">
