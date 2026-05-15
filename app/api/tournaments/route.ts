@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
-import type { Tournament } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+
+type DatabaseTournament = {
+  id: string;
+  title: string;
+  game: string;
+  date: string;
+  prize: string;
+  maxSlots: number;
+  status: string;
+  description: string;
+};
 
 export async function GET() {
   try {
@@ -12,16 +22,18 @@ export async function GET() {
       },
     });
 
-    const formattedTournaments = tournaments.map((tournament: Tournament) => ({
-      id: tournament.id,
-      title: tournament.title,
-      game: tournament.game,
-      date: tournament.date,
-      prize: tournament.prize,
-      teams: `${tournament.maxSlots} slots`,
-      status: tournament.status,
-      description: tournament.description,
-    }));
+    const formattedTournaments = tournaments.map(
+      (tournament: DatabaseTournament) => ({
+        id: tournament.id,
+        title: tournament.title,
+        game: tournament.game,
+        date: tournament.date,
+        prize: tournament.prize,
+        teams: `${tournament.maxSlots} slots`,
+        status: tournament.status,
+        description: tournament.description,
+      }),
+    );
 
     return NextResponse.json({
       success: true,
