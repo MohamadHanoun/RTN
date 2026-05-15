@@ -2,9 +2,25 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import RoleCard from "@/components/RoleCard";
-import { serverRoles } from "@/data/roles";
+import { prisma } from "@/lib/prisma";
 
-export default function RolesPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function getRoles() {
+  return prisma.role.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      order: "asc",
+    },
+  });
+}
+
+export default async function RolesPage() {
+  const roles = await getRoles();
+
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
       <Navbar />
@@ -22,16 +38,16 @@ export default function RolesPage() {
           </h2>
 
           <p className="leading-7 text-gray-300">
-            These roles are currently displayed from static website data. Later,
-            the RTN bot can connect them with real Discord roles, XP rewards,
-            tournament roles, and admin permissions.
+            These roles are now loaded from the database. Later, the RTN bot can
+            connect them with real Discord roles, XP rewards, tournament roles,
+            and admin permissions.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {serverRoles.map((role) => (
+          {roles.map((role) => (
             <RoleCard
-              key={role.name}
+              key={role.id}
               name={role.name}
               color={role.color}
               description={role.description}
