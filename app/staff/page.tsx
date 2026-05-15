@@ -2,9 +2,25 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import StaffCard from "@/components/StaffCard";
-import { staffMembers } from "@/data/staff";
+import { prisma } from "@/lib/prisma";
 
-export default function StaffPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function getStaffMembers() {
+  return prisma.staffMember.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      order: "asc",
+    },
+  });
+}
+
+export default async function StaffPage() {
+  const staffMembers = await getStaffMembers();
+
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
       <Navbar />
@@ -12,7 +28,7 @@ export default function StaffPage() {
       <PageHeader
         label="RTN Staff"
         title="The team behind The Noobs of Temple & Rift."
-        description="This page is prepared for RTN staff members, future Discord avatars, staff profiles, developer members, and admin management."
+        description="This page is connected to the database and prepared for future Discord avatars, staff profiles, developer members, and admin management."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
@@ -22,16 +38,16 @@ export default function StaffPage() {
           </h2>
 
           <p className="leading-7 text-gray-300">
-            The current staff section uses simple placeholder cards. Later, this
-            page can show real Discord avatars, staff roles, developer profiles,
-            and live information from the database.
+            Staff members are now loaded from the database. Later, this page can
+            show real Discord avatars, staff roles, developer profiles, and live
+            information from the RTN admin panel.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {staffMembers.map((member) => (
             <StaffCard
-              key={member.name}
+              key={member.id}
               name={member.name}
               role={member.role}
               status={member.status}
