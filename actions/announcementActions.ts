@@ -49,14 +49,18 @@ export async function createAnnouncement(formData: FormData) {
   redirect("/admin?tab=announcements&message=Announcement created successfully");
 }
 
-export async function toggleAnnouncementPublished(formData: FormData) {
+export async function updateAnnouncement(formData: FormData) {
   await requireAdmin();
 
   const id = String(formData.get("id") || "").trim();
-  const published = formData.get("published") === "true";
+  const title = String(formData.get("title") || "").trim();
+  const category = String(formData.get("category") || "").trim();
+  const description = String(formData.get("description") || "").trim();
+  const important = formData.get("important") === "on";
+  const published = formData.get("published") === "on";
 
-  if (!id) {
-    throw new Error("Announcement ID is missing.");
+  if (!id || !title || !category || !description) {
+    throw new Error("Announcement ID, title, category, and description are required.");
   }
 
   await prisma.announcement.update({
@@ -64,35 +68,16 @@ export async function toggleAnnouncementPublished(formData: FormData) {
       id,
     },
     data: {
-      published: !published,
+      title,
+      category,
+      description,
+      important,
+      published,
     },
   });
 
   revalidateAnnouncementPages();
-  redirect("/admin?tab=announcements&message=Announcement visibility updated");
-}
-
-export async function toggleAnnouncementImportant(formData: FormData) {
-  await requireAdmin();
-
-  const id = String(formData.get("id") || "").trim();
-  const important = formData.get("important") === "true";
-
-  if (!id) {
-    throw new Error("Announcement ID is missing.");
-  }
-
-  await prisma.announcement.update({
-    where: {
-      id,
-    },
-    data: {
-      important: !important,
-    },
-  });
-
-  revalidateAnnouncementPages();
-  redirect("/admin?tab=announcements&message=Announcement importance updated");
+  redirect("/admin?tab=announcements&message=Announcement updated successfully");
 }
 
 export async function deleteAnnouncement(formData: FormData) {
