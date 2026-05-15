@@ -199,7 +199,7 @@ export default function AdminStaffListClient({
                       className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-green-400"
                     />
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <button
                         type="submit"
                         className="rounded-xl border border-green-500/20 px-4 py-2 font-bold text-green-300 transition hover:bg-green-500/10"

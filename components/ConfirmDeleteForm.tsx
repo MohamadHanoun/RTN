@@ -38,7 +38,7 @@ export default function ConfirmDeleteForm({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="rounded-xl border border-red-500/20 px-4 py-2 font-bold text-red-300 transition hover:bg-red-500/10"
+        className="w-full rounded-xl border border-red-500/20 px-4 py-2 font-bold text-red-300 transition hover:bg-red-500/10 sm:w-auto"
       >
         Delete
       </button>

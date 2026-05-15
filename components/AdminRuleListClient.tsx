@@ -169,7 +169,7 @@ export default function AdminRuleListClient({
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
+                  <div className="grid gap-3 sm:flex sm:flex-wrap">
                     <form action={toggleRuleActive}>
                       <input type="hidden" name="id" value={rule.id} />
                       <input

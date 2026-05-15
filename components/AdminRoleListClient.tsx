@@ -199,10 +199,10 @@ export default function AdminRoleListClient({
                       className="resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-blue-400"
                     />
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <button
                         type="submit"
-                        className="rounded-xl border border-blue-500/20 px-4 py-2 font-bold text-blue-300 transition hover:bg-blue-500/10"
+                        className="w-full rounded-xl border border-blue-500/20 px-4 py-2 font-bold text-blue-300 transition hover:bg-blue-500/10 sm:w-auto"
                       >
                         Save Changes
                       </button>
@@ -220,7 +220,7 @@ export default function AdminRoleListClient({
 
                       <button
                         type="submit"
-                        className="rounded-xl border border-blue-500/20 px-4 py-2 font-bold text-blue-300 transition hover:bg-blue-500/10"
+                        className="w-full rounded-xl border border-blue-500/20 px-4 py-2 font-bold text-blue-300 transition hover:bg-blue-500/10 sm:w-auto"
                       >
                         {role.isActive ? "Hide" : "Show"}
                       </button>
@@ -239,7 +239,7 @@ export default function AdminRoleListClient({
                             }));
 
                             updateItems(updatedRoles);
-                            }}
+                        }}
                     />
                   </div>
                 </div>
