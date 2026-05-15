@@ -4,8 +4,53 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import { adminModules } from "@/data/admin";
+import { prisma } from "@/lib/prisma";
 
-export default function AdminPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function getAdminOverview() {
+  const [
+    rulesCount,
+    rolesCount,
+    staffCount,
+    tournamentsCount,
+    announcementsCount,
+    usersCount,
+  ] = await Promise.all([
+    prisma.rule.count({ where: { isActive: true } }),
+    prisma.role.count({ where: { isActive: true } }),
+    prisma.staffMember.count({ where: { isActive: true } }),
+    prisma.tournament.count(),
+    prisma.announcement.count({ where: { published: true } }),
+    prisma.user.count(),
+  ]);
+
+  return [
+    {
+      label: "Website Content",
+      value: `${rulesCount + rolesCount + staffCount + announcementsCount}`,
+      description:
+        "Rules, roles, staff members, and announcements currently stored in the database.",
+    },
+    {
+      label: "Tournaments",
+      value: String(tournamentsCount),
+      description:
+        "Tournament records prepared for future registration and admin management.",
+    },
+    {
+      label: "XP Users",
+      value: String(usersCount),
+      description:
+        "Users currently stored for the future XP system and leaderboard.",
+    },
+  ];
+}
+
+export default async function AdminPage() {
+  const overviewItems = await getAdminOverview();
+
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
       <Navbar />
@@ -13,10 +58,10 @@ export default function AdminPage() {
       <PageHeader
         label="RTN Admin Panel"
         title="Manage the RTN community from one place."
-        description="This admin panel is prepared for future Discord login, database management, tournaments, XP settings, announcements, and live server statistics."
+        description="This admin panel is connected to the database and prepared for future Discord login, database management, tournaments, XP settings, announcements, and live server statistics."
       />
 
-      <AdminOverview />
+      <AdminOverview items={overviewItems} />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-10 rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-6">
@@ -25,9 +70,9 @@ export default function AdminPage() {
           </h2>
 
           <p className="leading-7 text-gray-300">
-            This page is only a visual structure for now. Later, it will require
-            Discord login and RTN admin permission before anyone can manage the
-            website.
+            This page is only a visual and read-only structure for now. Later,
+            it will require Discord login and RTN admin permission before anyone
+            can manage the website.
           </p>
 
           <button
@@ -41,9 +86,9 @@ export default function AdminPage() {
         <div className="mb-10">
           <h2 className="text-4xl font-black">Admin Modules</h2>
           <p className="mt-4 max-w-2xl text-gray-300">
-            These sections are prepared for future management tools. Later, RTN admins
-            will be able to control website content, tournaments, XP settings, and
-            Discord-related data from here.
+            These sections are prepared for future management tools. Later, RTN
+            admins will be able to control website content, tournaments, XP
+            settings, and Discord-related data from here.
           </p>
         </div>
 
