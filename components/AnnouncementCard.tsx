@@ -1,12 +1,19 @@
-import type { Announcement } from "@/data/announcements";
-
 type AnnouncementCardProps = {
-  announcement: Announcement;
+  announcement: {
+    id: string;
+    title: string;
+    category: string;
+    description: string;
+    important: boolean;
+    createdAt: Date;
+  };
 };
 
 export default function AnnouncementCard({
   announcement,
 }: AnnouncementCardProps) {
+  const date = new Date(announcement.createdAt).toLocaleDateString("en-GB");
+
   return (
     <article className="flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-8 transition hover:-translate-y-1 hover:bg-white/10">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -24,7 +31,7 @@ export default function AnnouncementCard({
       <h2 className="mb-3 text-2xl font-bold">{announcement.title}</h2>
 
       <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-        {announcement.date}
+        {date}
       </p>
 
       <p className="flex-1 leading-7 text-gray-300">
@@ -33,7 +40,7 @@ export default function AnnouncementCard({
 
       <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4">
         <p className="text-sm text-gray-400">
-          This update will later be managed through the RTN admin panel.
+          This update is loaded from the RTN database.
         </p>
       </div>
     </article>

@@ -3,9 +3,25 @@ import AnnouncementSummary from "@/components/AnnouncementSummary";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
-import { announcements } from "@/data/announcements";
+import { prisma } from "@/lib/prisma";
 
-export default function AnnouncementsPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function getAnnouncements() {
+  return prisma.announcement.findMany({
+    where: {
+      published: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export default async function AnnouncementsPage() {
+  const announcements = await getAnnouncements();
+
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
       <Navbar />
@@ -13,10 +29,10 @@ export default function AnnouncementsPage() {
       <PageHeader
         label="RTN Announcements"
         title="News, updates, and community announcements."
-        description="This page will later be managed from the admin panel and used for tournament news, server updates, feature releases, and community events."
+        description="This page is connected to the database and prepared for tournament news, server updates, feature releases, and community events."
       />
 
-      <AnnouncementSummary />
+      <AnnouncementSummary announcements={announcements} />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-10 rounded-3xl border border-indigo-500/20 bg-indigo-500/10 p-6">
@@ -25,9 +41,9 @@ export default function AnnouncementsPage() {
           </h2>
 
           <p className="leading-7 text-gray-300">
-            Announcements are currently loaded from static website data. Later,
-            RTN admins will be able to create, publish, edit, and highlight
-            announcements directly from the admin panel.
+            Announcements are now loaded from the database. Later, RTN admins
+            will be able to create, publish, edit, and highlight announcements
+            directly from the admin panel.
           </p>
         </div>
 

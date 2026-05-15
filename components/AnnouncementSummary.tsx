@@ -1,6 +1,12 @@
-import { announcements } from "@/data/announcements";
+type AnnouncementSummaryProps = {
+  announcements: {
+    important: boolean;
+  }[];
+};
 
-export default function AnnouncementSummary() {
+export default function AnnouncementSummary({
+  announcements,
+}: AnnouncementSummaryProps) {
   const importantCount = announcements.filter((item) => item.important).length;
   const totalCount = announcements.length;
 
@@ -13,7 +19,7 @@ export default function AnnouncementSummary() {
           </p>
           <h2 className="mb-3 text-xl font-bold">Total Updates</h2>
           <p className="leading-7 text-gray-300">
-            Current announcements prepared for the RTN website.
+            Current announcements loaded from the RTN database.
           </p>
         </article>
 
