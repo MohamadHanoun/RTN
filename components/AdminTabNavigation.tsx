@@ -14,37 +14,37 @@ const tabs: AdminTab[] = [
   {
     label: "Overview",
     value: "overview",
-    description: "Database summary",
+    description: "Summary",
   },
   {
     label: "Announcements",
     value: "announcements",
-    description: "News and updates",
+    description: "News",
   },
   {
     label: "Tournaments",
     value: "tournaments",
-    description: "Events and competitions",
+    description: "Events",
   },
   {
     label: "Rules",
     value: "rules",
-    description: "Community rules",
+    description: "Rules",
   },
   {
     label: "Roles",
     value: "roles",
-    description: "Discord roles",
+    description: "Roles",
   },
   {
     label: "Staff",
     value: "staff",
-    description: "Team members",
+    description: "Team",
   },
   {
     label: "Modules",
     value: "modules",
-    description: "Future tools",
+    description: "Tools",
   },
 ];
 
@@ -52,9 +52,9 @@ export default function AdminTabNavigation({
   activeTab,
 }: AdminTabNavigationProps) {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-10">
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-indigo-500/5">
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+    <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-2xl shadow-indigo-500/5">
+        <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-7 lg:overflow-visible">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.value;
 
@@ -62,7 +62,7 @@ export default function AdminTabNavigation({
               <Link
                 key={tab.value}
                 href={`/admin?tab=${tab.value}`}
-                className={`rounded-2xl border p-4 transition ${
+                className={`min-w-[150px] rounded-2xl border p-4 transition lg:min-w-0 ${
                   isActive
                     ? "border-indigo-400/40 bg-indigo-500/20 text-white shadow-lg shadow-indigo-500/10"
                     : "border-white/10 bg-black/20 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white"
