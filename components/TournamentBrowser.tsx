@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import TournamentCard from "@/components/TournamentCard";
 import type { Tournament, TournamentStatus } from "@/data/tournaments";
+import EmptyState from "./EmptyState";
 
 type TournamentBrowserProps = {
   tournaments: Tournament[];
@@ -94,13 +95,11 @@ export default function TournamentBrowser({
       </div>
 
       {filteredTournaments.length === 0 ? (
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-          <h2 className="mb-3 text-2xl font-bold">No tournaments found</h2>
-
-          <p className="text-gray-300">
-            Try changing the search text or status filter.
-          </p>
-        </div>
+        <EmptyState
+            title="No tournaments found"
+            description="Try changing the search text or status filter to find matching RTN tournaments."
+        />
+        
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredTournaments.map((tournament) => (

@@ -6,6 +6,7 @@ import XpSystemPreview from "@/components/XpSystemPreview";
 import type { LeaderboardUser } from "@/data/leaderboard";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
+import EmptyState from "@/components/EmptyState";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -57,7 +58,12 @@ export default async function LeaderboardPage() {
           <LeaderboardTable users={leaderboardUsers} />
         ) : (
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-            <h2 className="mb-3 text-2xl font-bold">No XP data yet</h2>
+            <EmptyState
+              title="No leaderboard data yet"
+              description="Player rankings will appear here when RTN activity and XP data are available."
+              actionLabel="Join Discord"
+              actionHref={process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "#"}
+            />
             <p className="text-gray-300">
               Users will appear here later when Discord login and the RTN bot XP
               system are connected.

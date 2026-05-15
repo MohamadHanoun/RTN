@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import RuleCard from "@/components/RuleCard";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
+import EmptyState from "@/components/EmptyState";
 
 export const metadata: Metadata = {
   title: "Rules",
@@ -42,7 +43,10 @@ export default async function RulesPage() {
 
         {rules.length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-            <h2 className="mb-3 text-2xl font-bold">No active rules yet</h2>
+            <EmptyState
+              title="No active rules yet"
+              description="RTN rules will appear here when they are available."
+            />
 
             <p className="text-gray-300">
               Active rules will appear here after they are created from the

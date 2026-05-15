@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
+import EmptyState from "@/components/EmptyState";
 
 export const metadata: Metadata = {
   title: "Announcements",
@@ -53,10 +54,10 @@ export default async function AnnouncementsPage() {
       <section className="mx-auto max-w-7xl px-6 pb-24">
 
         {announcements.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-            <h2 className="mb-3 text-2xl font-bold">No announcements yet</h2>
-
-          </div>
+          <EmptyState
+            title="No announcements yet"
+            description="Published RTN announcements will appear here when new updates are available."
+          />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {announcements.map((announcement) => (
