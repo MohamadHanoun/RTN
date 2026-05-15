@@ -1,7 +1,7 @@
-export type TournamentStatus = "open" | "upcoming" | "closed" | "finished";
+export type TournamentStatus = "open" | "upcoming" | "closed";
 
 export type Tournament = {
-  id: number;
+  id: number | string;
   title: string;
   game: string;
   date: string;

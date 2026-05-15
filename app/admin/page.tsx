@@ -9,6 +9,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import AdminAnnouncementForm from "@/components/AdminAnnouncementForm";
 import AdminAnnouncementList from "@/components/AdminAnnouncementList";
+import AdminTournamentForm from "@/components/AdminTournamentForm";
+import AdminTournamentList from "@/components/AdminTournamentList";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -141,6 +143,10 @@ export default async function AdminPage() {
       <AdminOverview items={overviewItems} />
       <AdminAnnouncementForm />
       <AdminAnnouncementList />
+      <AdminTournamentForm />
+      <AdminTournamentList />
+
+      
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-10">

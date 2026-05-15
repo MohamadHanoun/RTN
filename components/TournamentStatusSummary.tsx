@@ -1,6 +1,14 @@
-import { tournaments } from "@/data/tournaments";
+import type { Tournament, TournamentStatus } from "@/data/tournaments";
 
-const statusCards = [
+type TournamentStatusSummaryProps = {
+  tournaments: Tournament[];
+};
+
+const statusCards: {
+  label: string;
+  status: TournamentStatus;
+  description: string;
+}[] = [
   {
     label: "Open",
     status: "open",
@@ -18,7 +26,9 @@ const statusCards = [
   },
 ];
 
-export default function TournamentStatusSummary() {
+export default function TournamentStatusSummary({
+  tournaments,
+}: TournamentStatusSummaryProps) {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-12">
       <div className="grid gap-6 md:grid-cols-3">
