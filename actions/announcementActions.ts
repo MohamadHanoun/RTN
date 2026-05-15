@@ -5,12 +5,25 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function createAnnouncement(formData: FormData) {
+async function requireAdmin() {
   const session = await auth();
 
   if (!session?.user?.isAdmin) {
     throw new Error("Unauthorized");
   }
+
+  return session;
+}
+
+function revalidateAnnouncementPages() {
+  revalidatePath("/admin");
+  revalidatePath("/announcements");
+  revalidatePath("/api/announcements");
+  revalidatePath("/");
+}
+
+export async function createAnnouncement(formData: FormData) {
+  await requireAdmin();
 
   const title = String(formData.get("title") || "").trim();
   const category = String(formData.get("category") || "").trim();
@@ -32,9 +45,68 @@ export async function createAnnouncement(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/announcements");
-  revalidatePath("/api/announcements");
-
+  revalidateAnnouncementPages();
   redirect("/admin");
+}
+
+export async function toggleAnnouncementPublished(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  const published = formData.get("published") === "true";
+
+  if (!id) {
+    throw new Error("Announcement ID is missing.");
+  }
+
+  await prisma.announcement.update({
+    where: {
+      id,
+    },
+    data: {
+      published: !published,
+    },
+  });
+
+  revalidateAnnouncementPages();
+}
+
+export async function toggleAnnouncementImportant(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  const important = formData.get("important") === "true";
+
+  if (!id) {
+    throw new Error("Announcement ID is missing.");
+  }
+
+  await prisma.announcement.update({
+    where: {
+      id,
+    },
+    data: {
+      important: !important,
+    },
+  });
+
+  revalidateAnnouncementPages();
+}
+
+export async function deleteAnnouncement(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+
+  if (!id) {
+    throw new Error("Announcement ID is missing.");
+  }
+
+  await prisma.announcement.delete({
+    where: {
+      id,
+    },
+  });
+
+  revalidateAnnouncementPages();
 }
