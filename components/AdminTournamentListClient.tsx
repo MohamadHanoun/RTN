@@ -11,7 +11,9 @@ type TournamentItem = {
   prize: string;
   description: string;
   maxSlots: number;
+  teamSize: number;
   status: string;
+  registrationStatus: string;
 };
 
 type ServerAction = (formData: FormData) => void | Promise<void>;
@@ -34,6 +36,14 @@ const statusFilters: {
   { label: "Closed", value: "closed" },
 ];
 
+function registrationBadge(status: string) {
+  if (status === "open") {
+    return "border-green-500/20 bg-green-500/10 text-green-300";
+  }
+
+  return "border-red-500/20 bg-red-500/10 text-red-300";
+}
+
 export default function AdminTournamentListClient({
   tournaments,
   updateTournament,
@@ -47,8 +57,7 @@ export default function AdminTournamentListClient({
     const searchValue = search.toLowerCase().trim();
 
     return items.filter((tournament) => {
-      const matchesStatus =
-        status === "all" || tournament.status === status;
+      const matchesStatus = status === "all" || tournament.status === status;
 
       const matchesSearch =
         !searchValue ||
@@ -66,9 +75,13 @@ export default function AdminTournamentListClient({
     <section className="mx-auto max-w-7xl px-6 pb-12">
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
         <div className="mb-8">
-          <h2 className="mb-3 text-3xl font-black">Manage Tournaments</h2>
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-cyan-300">
+            Tournament List
+          </p>
 
-          <p className="max-w-2xl leading-7 text-gray-300">
+          <h2 className="text-3xl font-black">Manage Tournaments</h2>
+
+          <p className="mt-3 max-w-2xl leading-7 text-gray-300">
             Search, filter, edit, or delete tournaments from the RTN database.
           </p>
         </div>
@@ -89,9 +102,7 @@ export default function AdminTournamentListClient({
             </label>
 
             <div className="grid gap-2">
-              <span className="font-semibold text-gray-200">
-                Filter status
-              </span>
+              <span className="font-semibold text-gray-200">Filter status</span>
 
               <div className="flex flex-wrap gap-2">
                 {statusFilters.map((filter) => {
@@ -132,14 +143,34 @@ export default function AdminTournamentListClient({
                 key={tournament.id}
                 className="rounded-2xl border border-white/10 bg-black/20 p-5"
               >
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-2xl font-black">{tournament.title}</h3>
+
+                    <p className="mt-2 text-gray-300">{tournament.game}</p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-1 text-sm font-bold text-cyan-300">
+                      {tournament.status}
+                    </span>
+
+                    <span
+                      className={`rounded-full border px-4 py-1 text-sm font-bold ${registrationBadge(
+                        tournament.registrationStatus,
+                      )}`}
+                    >
+                      Registration {tournament.registrationStatus}
+                    </span>
+                  </div>
+                </div>
+
                 <form action={updateTournament} className="grid gap-4">
                   <input type="hidden" name="id" value={tournament.id} />
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <label className="grid gap-2">
-                      <span className="font-semibold text-gray-200">
-                        Title
-                      </span>
+                      <span className="font-semibold text-gray-200">Title</span>
 
                       <input
                         name="title"
@@ -152,12 +183,19 @@ export default function AdminTournamentListClient({
                     <label className="grid gap-2">
                       <span className="font-semibold text-gray-200">Game</span>
 
-                      <input
+                      <select
                         name="game"
                         defaultValue={tournament.game}
                         required
                         className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
-                      />
+                      >
+                        <option value="Valorant">Valorant</option>
+                        <option value="League of Legends">
+                          League of Legends
+                        </option>
+                        <option value="CS2">CS2</option>
+                        <option value="Dota2">Dota2</option>
+                      </select>
                     </label>
                   </div>
 
@@ -174,9 +212,7 @@ export default function AdminTournamentListClient({
                     </label>
 
                     <label className="grid gap-2">
-                      <span className="font-semibold text-gray-200">
-                        Prize
-                      </span>
+                      <span className="font-semibold text-gray-200">Prize</span>
 
                       <input
                         name="prize"
@@ -188,7 +224,7 @@ export default function AdminTournamentListClient({
 
                     <label className="grid gap-2">
                       <span className="font-semibold text-gray-200">
-                        Max Slots
+                        Max Teams
                       </span>
 
                       <input
@@ -203,7 +239,24 @@ export default function AdminTournamentListClient({
 
                     <label className="grid gap-2">
                       <span className="font-semibold text-gray-200">
-                        Status
+                        Team Size
+                      </span>
+
+                      <input
+                        name="teamSize"
+                        type="number"
+                        min="1"
+                        defaultValue={tournament.teamSize}
+                        required
+                        className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="grid gap-2">
+                      <span className="font-semibold text-gray-200">
+                        Tournament Status
                       </span>
 
                       <select
@@ -213,6 +266,21 @@ export default function AdminTournamentListClient({
                       >
                         <option value="open">Open</option>
                         <option value="upcoming">Upcoming</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </label>
+
+                    <label className="grid gap-2">
+                      <span className="font-semibold text-gray-200">
+                        Registration Status
+                      </span>
+
+                      <select
+                        name="registrationStatus"
+                        defaultValue={tournament.registrationStatus}
+                        className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                      >
+                        <option value="open">Open</option>
                         <option value="closed">Closed</option>
                       </select>
                     </label>
@@ -235,7 +303,7 @@ export default function AdminTournamentListClient({
                   <div className="grid gap-3 sm:flex sm:flex-wrap">
                     <button
                       type="submit"
-                      className="rounded-xl border border-cyan-500/20 px-4 py-2 font-bold text-cyan-300 transition hover:bg-cyan-500/10"
+                      className="w-full rounded-xl border border-cyan-500/20 px-4 py-2 font-bold text-cyan-300 transition hover:bg-cyan-500/10 sm:w-auto"
                     >
                       Save Changes
                     </button>

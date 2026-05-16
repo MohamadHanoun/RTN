@@ -5,95 +5,125 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+const allowedTournamentStatuses = ["open", "upcoming", "closed"];
+const allowedRegistrationStatuses = ["open", "closed"];
+
 async function requireAdmin() {
   const session = await auth();
 
   if (!session?.user?.isAdmin) {
-    throw new Error("Unauthorized");
+    redirect("/login");
   }
 
-  return session;
+  return session.user;
 }
 
-function revalidateTournamentPages() {
-  revalidatePath("/admin");
-  revalidatePath("/tournaments");
-  revalidatePath("/api/tournaments");
-  revalidatePath("/stats");
-  revalidatePath("/api/stats");
-  revalidatePath("/");
+function adminRedirect(message: string): never {
+  redirect(`/admin?tab=tournaments&message=${encodeURIComponent(message)}`);
 }
 
-function getTournamentData(formData: FormData) {
-  const title = String(formData.get("title") || "").trim();
-  const game = String(formData.get("game") || "").trim();
-  const date = String(formData.get("date") || "").trim();
-  const prize = String(formData.get("prize") || "").trim();
-  const description = String(formData.get("description") || "").trim();
-  const status = String(formData.get("status") || "upcoming").trim();
+function adminError(error: string): never {
+  redirect(
+    `/admin?tab=tournaments&type=error&message=${encodeURIComponent(error)}`,
+  );
+}
 
-  const maxSlotsValue = Number(formData.get("maxSlots"));
-  const maxSlots =
-    Number.isFinite(maxSlotsValue) && maxSlotsValue > 0 ? maxSlotsValue : 16;
+function getRequiredText(formData: FormData, key: string) {
+  return String(formData.get(key) || "").trim();
+}
 
-  if (!title || !game || !date || !prize || !description) {
-    throw new Error("Title, game, date, prize, and description are required.");
+function getRequiredNumber(formData: FormData, key: string) {
+  const value = Number(formData.get(key));
+
+  if (!Number.isFinite(value) || value < 1) {
+    adminError(`${key} must be a valid number.`);
   }
 
-  return {
-    title,
-    game,
-    date,
-    prize,
-    description,
-    status,
-    maxSlots,
-  };
+  return value;
 }
 
 export async function createTournament(formData: FormData) {
   await requireAdmin();
 
-  const data = getTournamentData(formData);
+  const title = getRequiredText(formData, "title");
+  const game = getRequiredText(formData, "game");
+  const date = getRequiredText(formData, "date");
+  const prize = getRequiredText(formData, "prize");
+  const description = getRequiredText(formData, "description");
+  const status = getRequiredText(formData, "status");
+  const registrationStatus = getRequiredText(formData, "registrationStatus");
+
+  const maxSlots = getRequiredNumber(formData, "maxSlots");
+  const teamSize = getRequiredNumber(formData, "teamSize");
+
+  if (!title || !game || !date || !prize || !description) {
+    adminError("All tournament fields are required.");
+  }
+
+  if (!allowedTournamentStatuses.includes(status)) {
+    adminError("Invalid tournament status.");
+  }
+
+  if (!allowedRegistrationStatuses.includes(registrationStatus)) {
+    adminError("Invalid registration status.");
+  }
 
   await prisma.tournament.create({
-    data,
+    data: {
+      title,
+      game,
+      date,
+      prize,
+      description,
+      maxSlots,
+      teamSize,
+      status,
+      registrationStatus,
+    },
   });
 
-  revalidateTournamentPages();
-  redirect("/admin?tab=tournaments&message=Tournament created successfully");
+  revalidatePath("/admin");
+  revalidatePath("/tournaments");
+
+  adminRedirect("Tournament created successfully.");
 }
 
 export async function updateTournament(formData: FormData) {
   await requireAdmin();
 
-  const id = String(formData.get("id") || "").trim();
+  const id = getRequiredText(formData, "id");
+  const title = getRequiredText(formData, "title");
+  const game = getRequiredText(formData, "game");
+  const date = getRequiredText(formData, "date");
+  const prize = getRequiredText(formData, "prize");
+  const description = getRequiredText(formData, "description");
+  const status = getRequiredText(formData, "status");
+
+  const registrationStatus =
+    getRequiredText(formData, "registrationStatus") || "closed";
+
+  const maxSlots = getRequiredNumber(formData, "maxSlots");
+
+  const rawTeamSize = formData.get("teamSize");
+  const teamSize =
+    rawTeamSize === null || rawTeamSize === ""
+      ? 1
+      : getRequiredNumber(formData, "teamSize");
 
   if (!id) {
-    throw new Error("Tournament ID is missing.");
+    adminError("Tournament ID is missing.");
   }
 
-  const data = getTournamentData(formData);
+  if (!title || !game || !date || !prize || !description) {
+    adminError("All tournament fields are required.");
+  }
 
-  await prisma.tournament.update({
-    where: {
-      id,
-    },
-    data,
-  });
+  if (!allowedTournamentStatuses.includes(status)) {
+    adminError("Invalid tournament status.");
+  }
 
-  revalidateTournamentPages();
-  redirect("/admin?tab=tournaments&message=Tournament updated successfully");
-}
-
-export async function updateTournamentStatus(formData: FormData) {
-  await requireAdmin();
-
-  const id = String(formData.get("id") || "").trim();
-  const status = String(formData.get("status") || "").trim();
-
-  if (!id || !status) {
-    throw new Error("Tournament ID and status are required.");
+  if (!allowedRegistrationStatuses.includes(registrationStatus)) {
+    adminError("Invalid registration status.");
   }
 
   await prisma.tournament.update({
@@ -101,21 +131,32 @@ export async function updateTournamentStatus(formData: FormData) {
       id,
     },
     data: {
+      title,
+      game,
+      date,
+      prize,
+      description,
+      maxSlots,
+      teamSize,
       status,
+      registrationStatus,
     },
   });
 
-  revalidateTournamentPages();
-  redirect("/admin?tab=tournaments&message=Tournament status updated");
+  revalidatePath("/admin");
+  revalidatePath("/tournaments");
+
+  adminRedirect("Tournament updated successfully.");
 }
 
 export async function deleteTournament(formData: FormData) {
   await requireAdmin();
 
-  const id = String(formData.get("id") || "").trim();
+  const id =
+    getRequiredText(formData, "id") || getRequiredText(formData, "teamId");
 
   if (!id) {
-    throw new Error("Tournament ID is missing.");
+    adminError("Tournament ID is missing.");
   }
 
   await prisma.tournament.delete({
@@ -124,5 +165,8 @@ export async function deleteTournament(formData: FormData) {
     },
   });
 
-  revalidateTournamentPages();
+  revalidatePath("/admin");
+  revalidatePath("/tournaments");
+
+  adminRedirect("Tournament deleted successfully.");
 }
