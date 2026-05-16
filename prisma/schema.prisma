@@ -44,16 +44,20 @@ model XpLog {
 }
 
 model Tournament {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   title       String
   game        String
   description String
   date        String
   prize       String
   maxSlots    Int
-  status      String   @default("upcoming")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  teamSize    Int    @default(1)
+
+  status             String @default("upcoming")
+  registrationStatus String @default("closed")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   registrations TournamentRegistration[]
 }
