@@ -1,4 +1,9 @@
-import { approveTeam, rejectTeam } from "@/actions/adminTeamActions";
+import {
+  approveTeam,
+  deleteTeamAsAdmin,
+  rejectTeam,
+} from "@/actions/adminTeamActions";
+import ConfirmDeleteForm from "@/components/ConfirmDeleteForm";
 import EmptyState from "@/components/EmptyState";
 import ProfileNotice from "@/components/ProfileNotice";
 import { prisma } from "@/lib/prisma";
@@ -24,19 +29,30 @@ function statusStyle(status: string) {
   return "bg-indigo-500/20 text-indigo-300";
 }
 
+function statusLabel(status: string) {
+  if (status === "approved") {
+    return "Approved";
+  }
+
+  if (status === "pending") {
+    return "Pending";
+  }
+
+  if (status === "rejected") {
+    return "Rejected";
+  }
+
+  return "Draft";
+}
+
 export default async function AdminTeamReview({
   message,
   error,
 }: AdminTeamReviewProps) {
   const teams = await prisma.team.findMany({
-    orderBy: [
-      {
-        status: "asc",
-      },
-      {
-        createdAt: "desc",
-      },
-    ],
+    orderBy: {
+      createdAt: "desc",
+    },
     include: {
       leader: true,
       members: {
@@ -77,8 +93,8 @@ export default async function AdminTeamReview({
           <h2 className="text-3xl font-black">Manage Team Requests</h2>
 
           <p className="mt-3 max-w-2xl leading-7 text-gray-300">
-            Review submitted RTN teams, check members, and approve or reject
-            team requests.
+            Review submitted RTN teams, check members, approve requests, reject
+            requests with a reason, or delete teams when needed.
           </p>
         </div>
 
@@ -89,7 +105,7 @@ export default async function AdminTeamReview({
           />
         ) : (
           <div className="grid gap-8">
-            <div>
+            <section>
               <h3 className="mb-4 text-2xl font-black">Pending Review</h3>
 
               {pendingTeams.length === 0 ? (
@@ -117,29 +133,33 @@ export default async function AdminTeamReview({
                             team.status,
                           )}`}
                         >
-                          {team.status}
+                          {statusLabel(team.status)}
                         </span>
                       </div>
 
                       <div className="mb-5 rounded-xl border border-white/10 bg-black/20 p-4">
                         <h5 className="mb-3 font-bold">Members</h5>
 
-                        <div className="grid gap-2">
-                          {team.members.map((member) => (
-                            <div
-                              key={member.id}
-                              className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/5 px-4 py-3"
-                            >
-                              <span className="font-semibold">
-                                {member.user.username}
-                              </span>
+                        {team.members.length === 0 ? (
+                          <p className="text-gray-300">No members found.</p>
+                        ) : (
+                          <div className="grid gap-2">
+                            {team.members.map((member) => (
+                              <div
+                                key={member.id}
+                                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/5 px-4 py-3"
+                              >
+                                <span className="font-semibold">
+                                  {member.user.username}
+                                </span>
 
-                              <span className="text-sm capitalize text-gray-400">
-                                {member.role}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                                <span className="text-sm capitalize text-gray-400">
+                                  {member.role}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {team.invites.length > 0 && (
@@ -159,17 +179,29 @@ export default async function AdminTeamReview({
                         </div>
                       )}
 
-                      <div className="grid gap-4 lg:grid-cols-[auto_1fr]">
-                        <form action={approveTeam}>
-                          <input type="hidden" name="teamId" value={team.id} />
+                      <div className="grid gap-4">
+                        <div className="grid gap-3 sm:flex sm:flex-wrap">
+                          <form action={approveTeam}>
+                            <input
+                              type="hidden"
+                              name="teamId"
+                              value={team.id}
+                            />
 
-                          <button
-                            type="submit"
-                            className="w-full rounded-xl bg-green-500 px-5 py-3 font-bold text-white transition hover:bg-green-400 lg:w-auto"
-                          >
-                            Approve Team
-                          </button>
-                        </form>
+                            <button
+                              type="submit"
+                              className="w-full rounded-xl bg-green-500 px-5 py-3 font-bold text-white transition hover:bg-green-400 sm:w-auto"
+                            >
+                              Approve Team
+                            </button>
+                          </form>
+
+                          <ConfirmDeleteForm
+                            id={team.id}
+                            action={deleteTeamAsAdmin}
+                            message="Are you sure you want to delete this team? This will remove the team, members, invites, and registrations."
+                          />
+                        </div>
 
                         <form
                           action={rejectTeam}
@@ -196,9 +228,9 @@ export default async function AdminTeamReview({
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
-            <div>
+            <section>
               <h3 className="mb-4 text-2xl font-black">All Teams</h3>
 
               {otherTeams.length === 0 ? (
@@ -220,12 +252,6 @@ export default async function AdminTeamReview({
                             {team.game} • Leader: {team.leader.username} •{" "}
                             {team.members.length} members
                           </p>
-
-                          {team.rejectionReason && (
-                            <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
-                              Reason: {team.rejectionReason}
-                            </p>
-                          )}
                         </div>
 
                         <span
@@ -233,14 +259,59 @@ export default async function AdminTeamReview({
                             team.status,
                           )}`}
                         >
-                          {team.status}
+                          {statusLabel(team.status)}
                         </span>
+                      </div>
+
+                      {team.rejectionReason && (
+                        <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                          <p className="mb-2 font-bold text-red-300">
+                            Rejection reason
+                          </p>
+
+                          <p className="leading-7 text-gray-300">
+                            {team.rejectionReason}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
+                        <h5 className="mb-3 font-bold">Members</h5>
+
+                        {team.members.length === 0 ? (
+                          <p className="text-gray-300">No members found.</p>
+                        ) : (
+                          <div className="grid gap-2">
+                            {team.members.map((member) => (
+                              <div
+                                key={member.id}
+                                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/20 px-4 py-3"
+                              >
+                                <span className="font-semibold">
+                                  {member.user.username}
+                                </span>
+
+                                <span className="text-sm capitalize text-gray-400">
+                                  {member.role}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-5">
+                        <ConfirmDeleteForm
+                          id={team.id}
+                          action={deleteTeamAsAdmin}
+                          message="Are you sure you want to delete this team? This action cannot be undone."
+                        />
                       </div>
                     </article>
                   ))}
                 </div>
               )}
-            </div>
+            </section>
           </div>
         )}
       </div>

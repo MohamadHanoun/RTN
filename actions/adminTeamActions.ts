@@ -109,3 +109,36 @@ export async function rejectTeam(formData: FormData) {
 
   adminTeamsRedirect("Team rejected.");
 }
+
+export async function deleteTeamAsAdmin(formData: FormData) {
+  await requireAdmin();
+
+  const teamId =
+    String(formData.get("teamId") || "").trim() ||
+    String(formData.get("id") || "").trim();
+
+  if (!teamId) {
+    adminTeamsError("Team ID is missing.");
+  }
+
+  const team = await prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+  });
+
+  if (!team) {
+    adminTeamsError("Team was not found.");
+  }
+
+  await prisma.team.delete({
+    where: {
+      id: team.id,
+    },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/profile");
+
+  adminTeamsRedirect("Team deleted successfully.");
+}

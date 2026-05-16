@@ -16,6 +16,7 @@ type TeamManagementCardProps = {
     name: string;
     game: string;
     status: string;
+    rejectionReason: string | null;
     members: {
       id: string;
       role: string;
@@ -51,11 +52,28 @@ function statusStyle(status: string) {
   return "bg-indigo-500/20 text-indigo-300";
 }
 
+function statusLabel(status: string) {
+  if (status === "approved") {
+    return "Approved";
+  }
+
+  if (status === "pending") {
+    return "Pending Review";
+  }
+
+  if (status === "rejected") {
+    return "Rejected";
+  }
+
+  return "Draft";
+}
+
 export default function TeamManagementCard({ team }: TeamManagementCardProps) {
   const canEdit =
     team.status === "draft" ||
     team.status === "pending" ||
     team.status === "rejected";
+
   const pendingInvites = team.invites.filter(
     (invite) => invite.status === "pending",
   );
@@ -65,6 +83,7 @@ export default function TeamManagementCard({ team }: TeamManagementCardProps) {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-2xl font-black">{team.name}</h3>
+
           <p className="mt-1 text-gray-300">{team.game}</p>
         </div>
 
@@ -73,34 +92,75 @@ export default function TeamManagementCard({ team }: TeamManagementCardProps) {
             team.status,
           )}`}
         >
-          {team.status}
+          {statusLabel(team.status)}
         </span>
       </div>
+
+      {team.status === "rejected" && team.rejectionReason && (
+        <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5">
+          <p className="mb-2 font-bold text-red-300">Team rejected</p>
+
+          <p className="leading-7 text-gray-300">
+            Reason: {team.rejectionReason}
+          </p>
+        </div>
+      )}
+
+      {team.status === "pending" && (
+        <div className="mb-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5">
+          <p className="mb-2 font-bold text-yellow-300">
+            Waiting for admin review
+          </p>
+
+          <p className="leading-7 text-gray-300">
+            Your team has been submitted. You can still update or delete it
+            before approval.
+          </p>
+        </div>
+      )}
+
+      {team.status === "approved" && (
+        <div className="mb-6 rounded-2xl border border-green-500/20 bg-green-500/10 p-5">
+          <p className="mb-2 font-bold text-green-300">Team approved</p>
+
+          <p className="leading-7 text-gray-300">
+            Your team has been approved by RTN staff.
+          </p>
+        </div>
+      )}
 
       <form action={updateTeam} className="grid gap-4">
         <input type="hidden" name="teamId" value={team.id} />
 
         <div className="grid gap-4 md:grid-cols-2">
-          <input
-            name="name"
-            defaultValue={team.name}
-            disabled={!canEdit}
-            required
-            className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition disabled:opacity-50"
-          />
+          <label className="grid gap-2">
+            <span className="font-semibold text-gray-200">Team Name</span>
 
-          <select
-            name="game"
-            defaultValue={team.game}
-            disabled={!canEdit}
-            className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition disabled:opacity-50"
-          >
-            {games.map((game) => (
-              <option key={game} value={game}>
-                {game}
-              </option>
-            ))}
-          </select>
+            <input
+              name="name"
+              defaultValue={team.name}
+              disabled={!canEdit}
+              required
+              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="font-semibold text-gray-200">Game</span>
+
+            <select
+              name="game"
+              defaultValue={team.game}
+              disabled={!canEdit}
+              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {games.map((game) => (
+                <option key={game} value={game}>
+                  {game}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {canEdit && (
@@ -116,35 +176,40 @@ export default function TeamManagementCard({ team }: TeamManagementCardProps) {
       <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
         <h4 className="mb-4 text-xl font-bold">Members</h4>
 
-        <div className="grid gap-3">
-          {team.members.map((member) => (
-            <div
-              key={member.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/20 p-4"
-            >
-              <div>
-                <p className="font-bold">{member.user.username}</p>
-                <p className="text-sm capitalize text-gray-400">
-                  {member.role}
-                </p>
+        {team.members.length === 0 ? (
+          <p className="text-gray-300">No members found.</p>
+        ) : (
+          <div className="grid gap-3">
+            {team.members.map((member) => (
+              <div
+                key={member.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/20 p-4"
+              >
+                <div>
+                  <p className="font-bold">{member.user.username}</p>
+
+                  <p className="text-sm capitalize text-gray-400">
+                    {member.role}
+                  </p>
+                </div>
+
+                {canEdit && member.role !== "leader" && (
+                  <form action={removeTeamMember}>
+                    <input type="hidden" name="teamId" value={team.id} />
+                    <input type="hidden" name="memberId" value={member.id} />
+
+                    <button
+                      type="submit"
+                      className="rounded-xl border border-red-500/20 px-4 py-2 text-sm font-bold text-red-300 transition hover:bg-red-500/10"
+                    >
+                      Remove
+                    </button>
+                  </form>
+                )}
               </div>
-
-              {canEdit && member.role !== "leader" && (
-                <form action={removeTeamMember}>
-                  <input type="hidden" name="teamId" value={team.id} />
-                  <input type="hidden" name="memberId" value={member.id} />
-
-                  <button
-                    type="submit"
-                    className="rounded-xl border border-red-500/20 px-4 py-2 text-sm font-bold text-red-300 transition hover:bg-red-500/10"
-                  >
-                    Remove
-                  </button>
-                </form>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {canEdit && (
@@ -158,7 +223,7 @@ export default function TeamManagementCard({ team }: TeamManagementCardProps) {
               name="player"
               required
               placeholder="Discord username or Discord ID"
-              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-gray-500"
+              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-gray-500 focus:border-indigo-400"
             />
 
             <button
