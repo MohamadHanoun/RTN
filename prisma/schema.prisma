@@ -8,7 +8,7 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  discordId String  @unique
+  discordId String   @unique
   username  String
   avatar    String?
   role      String   @default("Member")
@@ -17,8 +17,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  xpLogs        XpLog[]
-  registrations TournamentRegistration[]
+  xpLogs XpLog[]
+
+  ownedTeams      Team[]       @relation("TeamLeader")
+  teamMemberships TeamMember[]
+
+  tournamentRegistrations TournamentRegistration[] @relation("TournamentRegisteredBy")
 }
 
 model XpLog {
@@ -43,30 +47,51 @@ model Tournament {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  teams         Team[]
   registrations TournamentRegistration[]
 }
 
 model Team {
-  id           String   @id @default(cuid())
-  name         String
-  tournamentId String
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  name      String
+  leaderId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  leader User @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: Cascade)
+
+  members       TeamMember[]
+  registrations TournamentRegistration[]
+
+  @@unique([name, leaderId])
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
 }
 
 model TournamentRegistration {
-  id           String   @id @default(cuid())
-  userId       String
-  tournamentId String
-  status       String   @default("pending")
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  tournamentId   String
+  teamId         String
+  registeredById String
+  status         String   @default("registered")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  registeredBy User       @relation("TournamentRegisteredBy", fields: [registeredById], references: [id], onDelete: Cascade)
 
-  @@unique([userId, tournamentId])
+  @@unique([tournamentId, teamId])
 }
 
 model Announcement {
@@ -87,6 +112,7 @@ model ServerSetting {
   description String?
   updatedAt   DateTime @updatedAt
 }
+
 model Rule {
   id        String   @id @default(cuid())
   text      String
