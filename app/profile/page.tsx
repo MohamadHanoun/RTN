@@ -7,13 +7,13 @@ import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
+import ProfileDiscordId from "@/components/ProfileDiscordId";
+import ProfileInvitationsPanel from "@/components/ProfileInvitationsPanel";
 import ProfileLogoutButton from "@/components/ProfileLogoutButton";
 import ProfileNotice from "@/components/ProfileNotice";
-import TeamInvitationCard from "@/components/TeamInvitationCard";
+import TeamFlowGuide from "@/components/TeamFlowGuide";
 import TeamManagementCard from "@/components/TeamManagementCard";
 import { prisma } from "@/lib/prisma";
-import ProfileDiscordId from "@/components/ProfileDiscordId";
-import TeamFlowGuide from "@/components/TeamFlowGuide";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -113,41 +113,51 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <ProfileNotice message={params.message} error={params.error} />
 
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <aside className="rounded-3xl border border-white/10 bg-white/5 p-8">
-            <div className="flex items-center gap-5">
+        <section className="mb-8 rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               {user.avatar ? (
                 <Image
                   src={user.avatar}
                   alt={user.username}
-                  width={80}
-                  height={80}
-                  className="rounded-3xl"
+                  width={92}
+                  height={92}
+                  className="rounded-3xl border border-white/10"
                 />
               ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-500/20 text-2xl font-black text-indigo-300">
+                <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-white/10 bg-indigo-500/20 text-2xl font-black text-indigo-300">
                   RTN
                 </div>
               )}
 
-              <div className="min-w-0">
-                <h2 className="truncate text-2xl font-black">
+              <div className="min-w-0 flex-1">
+                <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-indigo-300">
+                  RTN Player
+                </p>
+
+                <h2 className="truncate text-3xl font-black md:text-4xl">
                   {user.username}
                 </h2>
 
-                <ProfileDiscordId discordId={user.discordId} />
+                <div className="mt-4 max-w-lg">
+                  <ProfileDiscordId discordId={user.discordId} />
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 grid gap-3">
+            <div className="grid gap-4">
               <div
                 className={`rounded-2xl border p-4 ${
                   user.isGuildMember
-                    ? "border-green-500/20 bg-green-500/10 text-green-300"
-                    : "border-yellow-500/20 bg-yellow-500/10 text-yellow-300"
+                    ? "border-green-500/20 bg-green-500/10"
+                    : "border-yellow-500/20 bg-yellow-500/10"
                 }`}
               >
-                <p className="font-bold">
+                <p
+                  className={`font-bold ${
+                    user.isGuildMember ? "text-green-300" : "text-yellow-300"
+                  }`}
+                >
                   {user.isGuildMember
                     ? "RTN Discord Member"
                     : "Discord Login Active"}
@@ -155,77 +165,74 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
                 <p className="mt-2 text-sm leading-6 text-gray-300">
                   {user.isGuildMember
-                    ? "You can use RTN team and tournament features."
+                    ? "You can create teams and use RTN tournament features."
                     : "Join the RTN Discord server to create teams and use tournament features."}
                 </p>
               </div>
 
+              <ProfileInvitationsPanel invites={user.receivedTeamInvites} />
+
               <ProfileLogoutButton />
             </div>
-          </aside>
-
-          <div className="grid gap-8">
-            <TeamFlowGuide />
-            <CreateTeamForm canCreateTeam={user.isGuildMember} />
-
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-8">
-              <h2 className="mb-5 text-3xl font-black">My Teams</h2>
-
-              {!hasTeams ? (
-                <EmptyState
-                  title="No teams yet"
-                  description="Your teams will appear here after you create or join an RTN team."
-                />
-              ) : (
-                <div className="grid gap-5">
-                  {user.ownedTeams.map((team) => (
-                    <TeamManagementCard key={team.id} team={team} />
-                  ))}
-
-                  {memberTeams.map((team) => (
-                    <article
-                      key={team.id}
-                      className="rounded-3xl border border-white/10 bg-black/20 p-6"
-                    >
-                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-                            Member
-                          </p>
-
-                          <h3 className="text-2xl font-black">{team.name}</h3>
-                        </div>
-
-                        <span className="rounded-full bg-indigo-500/20 px-4 py-1 text-sm font-bold text-indigo-300">
-                          {team.status}
-                        </span>
-                      </div>
-
-                      <p className="text-gray-300">{team.game}</p>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-8">
-              <h2 className="mb-5 text-3xl font-black">Team Invitations</h2>
-
-              {user.receivedTeamInvites.length === 0 ? (
-                <EmptyState
-                  title="No pending invitations"
-                  description="Team invitations will appear here when another player invites you."
-                />
-              ) : (
-                <div className="grid gap-4">
-                  {user.receivedTeamInvites.map((invite) => (
-                    <TeamInvitationCard key={invite.id} invite={invite} />
-                  ))}
-                </div>
-              )}
-            </section>
           </div>
+        </section>
+
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <TeamFlowGuide />
+          <CreateTeamForm canCreateTeam={user.isGuildMember} />
         </div>
+
+        <section className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-indigo-300">
+                Teams
+              </p>
+
+              <h2 className="text-3xl font-black">My Teams</h2>
+            </div>
+
+            <p className="text-sm text-gray-400">
+              Draft, pending, approved, and rejected teams appear here.
+            </p>
+          </div>
+
+          {!hasTeams ? (
+            <EmptyState
+              title="No teams yet"
+              description="Your teams will appear here after you create or join an RTN team."
+            />
+          ) : (
+            <div className="grid gap-6">
+              {user.ownedTeams.map((team) => (
+                <TeamManagementCard key={team.id} team={team} />
+              ))}
+
+              {memberTeams.map((team) => (
+                <article
+                  key={team.id}
+                  className="rounded-3xl border border-white/10 bg-black/20 p-6"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
+                        Member
+                      </p>
+
+                      <h3 className="text-2xl font-black">{team.name}</h3>
+
+                      <p className="mt-2 text-gray-300">{team.game}</p>
+                    </div>
+
+                    <span className="rounded-full bg-indigo-500/20 px-4 py-1 text-sm font-bold text-indigo-300">
+                      {team.status}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </section>
 
       <Footer />
