@@ -1,38 +1,40 @@
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import AdminAnnouncementForm from "@/components/AdminAnnouncementForm";
 import AdminAnnouncementList from "@/components/AdminAnnouncementList";
 import AdminModuleCard from "@/components/AdminModuleCard";
 import AdminOverview from "@/components/AdminOverview";
+import AdminRoleForm from "@/components/AdminRoleForm";
+import AdminRoleList from "@/components/AdminRoleList";
+import AdminRuleForm from "@/components/AdminRuleForm";
+import AdminRuleList from "@/components/AdminRuleList";
+import AdminStaffForm from "@/components/AdminStaffForm";
+import AdminStaffList from "@/components/AdminStaffList";
+import AdminTabNavigation from "@/components/AdminTabNavigation";
+import AdminTeamReview from "@/components/AdminTeamReview";
+import AdminToast from "@/components/AdminToast";
+import AdminTournamentForm from "@/components/AdminTournamentForm";
+import AdminTournamentList from "@/components/AdminTournamentList";
 import { DiscordLoginButton, LogoutButton } from "@/components/AuthButtons";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
-import AdminTournamentForm from "@/components/AdminTournamentForm";
-import AdminTournamentList from "@/components/AdminTournamentList";
-import AdminRuleForm from "@/components/AdminRuleForm";
-import AdminRuleList from "@/components/AdminRuleList";
-import AdminRoleForm from "@/components/AdminRoleForm";
-import AdminRoleList from "@/components/AdminRoleList";
-import AdminStaffForm from "@/components/AdminStaffForm";
-import AdminStaffList from "@/components/AdminStaffList";
-import AdminTabNavigation from "@/components/AdminTabNavigation";
 import { adminModules } from "@/data/admin";
 import { prisma } from "@/lib/prisma";
-import AdminToast from "@/components/AdminToast";
-import type { Metadata } from "next";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Admin",
   description: "Protected RTN admin dashboard.",
 };
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 type AdminPageProps = {
   searchParams: Promise<{
     tab?: string;
     message?: string;
+    error?: string;
     type?: string;
   }>;
 };
@@ -41,6 +43,7 @@ const allowedTabs = [
   "overview",
   "announcements",
   "tournaments",
+  "teams",
   "rules",
   "roles",
   "staff",
@@ -55,6 +58,8 @@ async function getAdminOverview() {
     tournamentsCount,
     announcementsCount,
     usersCount,
+    teamsCount,
+    pendingTeamsCount,
   ] = await Promise.all([
     prisma.rule.count({ where: { isActive: true } }),
     prisma.role.count({ where: { isActive: true } }),
@@ -62,6 +67,8 @@ async function getAdminOverview() {
     prisma.tournament.count(),
     prisma.announcement.count({ where: { published: true } }),
     prisma.user.count(),
+    prisma.team.count(),
+    prisma.team.count({ where: { status: "pending" } }),
   ]);
 
   return [
@@ -69,24 +76,36 @@ async function getAdminOverview() {
       label: "Website Content",
       value: `${rulesCount + rolesCount + staffCount + announcementsCount}`,
       description:
-        "Rules, roles, staff members, and announcements currently stored in the database.",
+        "Rules, roles, staff members, and announcements currently active on the website.",
     },
     {
       label: "Tournaments",
       value: String(tournamentsCount),
       description:
-        "Tournament records prepared for future registration and admin management.",
+        "Tournament records prepared for RTN events and future registrations.",
     },
     {
-      label: "XP Users",
+      label: "Teams",
+      value: String(teamsCount),
+      description: `${pendingTeamsCount} team request${
+        pendingTeamsCount === 1 ? "" : "s"
+      } waiting for review.`,
+    },
+    {
+      label: "Players",
       value: String(usersCount),
       description:
-        "Users currently stored for the future XP system and leaderboard.",
+        "Players who logged in to RTN using Discord and have a profile record.",
     },
   ];
 }
 
-function renderAdminTab(activeTab: string, overviewItems: Awaited<ReturnType<typeof getAdminOverview>>) {
+function renderAdminTab(
+  activeTab: string,
+  overviewItems: Awaited<ReturnType<typeof getAdminOverview>>,
+  message?: string,
+  error?: string,
+) {
   if (activeTab === "overview") {
     return <AdminOverview items={overviewItems} />;
   }
@@ -107,6 +126,10 @@ function renderAdminTab(activeTab: string, overviewItems: Awaited<ReturnType<typ
         <AdminTournamentList />
       </>
     );
+  }
+
+  if (activeTab === "teams") {
+    return <AdminTeamReview message={message} error={error} />;
   }
 
   if (activeTab === "rules") {
@@ -142,9 +165,8 @@ function renderAdminTab(activeTab: string, overviewItems: Awaited<ReturnType<typ
         <h2 className="text-4xl font-black">Admin Modules</h2>
 
         <p className="mt-4 max-w-2xl text-gray-300">
-          These sections are prepared for future management tools. Later, RTN
-          admins will be able to control website content, tournaments, XP
-          settings, and Discord-related data from here.
+          Additional RTN management tools can be added here as the platform
+          grows.
         </p>
       </div>
 
@@ -165,10 +187,11 @@ function renderAdminTab(activeTab: string, overviewItems: Awaited<ReturnType<typ
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const session = await auth();
   const params = await searchParams;
-  const toastType = params.type === "error" ? "error" : "success";
 
   const activeTab =
     params.tab && allowedTabs.includes(params.tab) ? params.tab : "overview";
+
+  const toastType = params.type === "error" ? "error" : "success";
 
   if (!session?.user) {
     return (
@@ -183,6 +206,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <h1 className="mb-6 text-5xl font-black md:text-7xl">
             Admin access required.
           </h1>
+
+          <p className="mb-8 max-w-xl leading-8 text-gray-300">
+            This page is protected. Login with Discord to continue to the RTN
+            admin panel.
+          </p>
 
           <DiscordLoginButton />
         </section>
@@ -228,7 +256,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <PageHeader
         label="RTN Admin Panel"
         title="Manage the RTN community from one place."
-        description="A protected dashboard for managing announcements, tournaments, rules, roles, staff, and future Discord-powered tools."
+        description="A protected dashboard for managing announcements, tournaments, teams, rules, roles, staff, and future RTN tools."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-8">
@@ -251,9 +279,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       </section>
 
       <AdminTabNavigation activeTab={activeTab} />
-      <AdminToast message={params.message} type={toastType} />
 
-      {renderAdminTab(activeTab, overviewItems)}
+      {activeTab !== "teams" && (
+        <AdminToast message={params.message} type={toastType} />
+      )}
+
+      {renderAdminTab(activeTab, overviewItems, params.message, params.error)}
 
       <Footer />
     </main>

@@ -46,6 +46,11 @@ const tabs: AdminTab[] = [
     value: "modules",
     description: "Tools",
   },
+  {
+    label: "Teams",
+    value: "teams",
+    description: "Review",
+  },
 ];
 
 export default function AdminTabNavigation({
