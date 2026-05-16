@@ -7,13 +7,18 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  discordId String   @unique
+  id        String  @id @default(cuid())
+  discordId String  @unique
   username  String
   avatar    String?
-  role      String   @default("Member")
-  xp        Int      @default(0)
-  level     Int      @default(1)
+  role      String  @default("Member")
+  xp        Int     @default(0)
+  level     Int     @default(1)
+
+  isGuildMember    Boolean   @default(false)
+  lastGuildCheckAt DateTime?
+  lastLoginAt      DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -21,6 +26,9 @@ model User {
 
   ownedTeams      Team[]       @relation("TeamLeader")
   teamMemberships TeamMember[]
+
+  sentTeamInvites     TeamInvite[] @relation("TeamInviteSender")
+  receivedTeamInvites TeamInvite[] @relation("TeamInviteReceiver")
 
   tournamentRegistrations TournamentRegistration[] @relation("TournamentRegisteredBy")
 }
@@ -51,15 +59,26 @@ model Tournament {
 }
 
 model Team {
-  id        String   @id @default(cuid())
-  name      String
-  leaderId  String
+  id       String @id @default(cuid())
+  name     String
+  game     String
+  leaderId String
+
+  status          String    @default("draft")
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  discordRoleId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   leader User @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: Cascade)
 
   members       TeamMember[]
+  invites       TeamInvite[]
   registrations TournamentRegistration[]
 
   @@unique([name, leaderId])
@@ -76,6 +95,22 @@ model TeamMember {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
+}
+
+model TeamInvite {
+  id            String    @id @default(cuid())
+  teamId        String
+  invitedUserId String
+  invitedById   String
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now())
+  respondedAt   DateTime?
+
+  team        Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  invitedUser User @relation("TeamInviteReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedBy   User @relation("TeamInviteSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, invitedUserId])
 }
 
 model TournamentRegistration {
