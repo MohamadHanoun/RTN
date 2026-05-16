@@ -13,6 +13,7 @@ import TeamInvitationCard from "@/components/TeamInvitationCard";
 import TeamManagementCard from "@/components/TeamManagementCard";
 import { prisma } from "@/lib/prisma";
 import ProfileDiscordId from "@/components/ProfileDiscordId";
+import TeamFlowGuide from "@/components/TeamFlowGuide";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -164,6 +165,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </aside>
 
           <div className="grid gap-8">
+            <TeamFlowGuide />
             <CreateTeamForm canCreateTeam={user.isGuildMember} />
 
             <section className="rounded-3xl border border-white/10 bg-white/5 p-8">
