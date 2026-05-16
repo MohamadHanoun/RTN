@@ -18,8 +18,12 @@ export const metadata: Metadata = {
 export default async function ProfilePage() {
   const session = await auth();
 
-  if (!session?.user?.databaseId) {
+  if (!session?.user) {
     redirect("/login");
+  }
+
+  if (!session.user.databaseId) {
+    redirect("/api/auth/signout?callbackUrl=/login");
   }
 
   const user = await prisma.user.findUnique({
