@@ -8,7 +8,7 @@ export const adminModules = [
   {
     title: "Tournaments",
     description:
-      "Create tournaments, update details, control registration status, and manage tournament visibility.",
+      "Create tournaments, update details, control registration status, manage images, and add tournament results.",
     status: "Ready",
   },
   {
@@ -20,19 +20,31 @@ export const adminModules = [
   {
     title: "Team Directory",
     description:
-      "View active teams, team leaders, members, and team information without approving teams manually.",
+      "View teams, leaders, members, registrations, tournament results, and points.",
     status: "Ready",
   },
   {
     title: "Players",
     description:
-      "View players who signed in with Discord and have an RTN profile record.",
+      "View players, Discord membership status, teams, registrations, tournament results, and points.",
+    status: "Ready",
+  },
+  {
+    title: "Leaderboard",
+    description:
+      "View player rankings by overall tournament points or by specific game.",
+    status: "Ready",
+  },
+  {
+    title: "Stats",
+    description:
+      "View RTN statistics, game breakdowns, tournament results, and awarded points.",
     status: "Ready",
   },
   {
     title: "Rules",
     description:
-      "Create, edit, activate, hide, and delete community rules from the admin panel.",
+      "Create, edit, activate, hide, reorder, and delete community rules from the admin panel.",
     status: "Ready",
   },
   {
@@ -46,17 +58,5 @@ export const adminModules = [
     description:
       "Manage staff members, roles, status labels, order, and visibility on the website.",
     status: "Ready",
-  },
-  {
-    title: "Leaderboard",
-    description:
-      "Future ranking system for tournament points, player performance, and community progression.",
-    status: "Future",
-  },
-  {
-    title: "Discord Bot",
-    description:
-      "Future Discord integration for automated stats, tournament updates, and server activity tracking.",
-    status: "Future",
   },
 ];

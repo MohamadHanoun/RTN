@@ -9,10 +9,6 @@ function getStatusClasses(status: string) {
     return "border-green-500/20 bg-green-500/10 text-green-300";
   }
 
-  if (status === "Future") {
-    return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
-  }
-
   if (status === "Important") {
     return "border-yellow-500/20 bg-yellow-500/10 text-yellow-300";
   }

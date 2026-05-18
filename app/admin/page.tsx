@@ -240,8 +240,8 @@ function renderAdminTab(
     (module) => module.status === "Ready",
   ).length;
 
-  const futureModules = adminModules.filter(
-    (module) => module.status === "Future",
+  const importantModules = adminModules.filter(
+    (module) => module.status === "Important",
   ).length;
 
   return (
@@ -255,15 +255,14 @@ function renderAdminTab(
           <h2 className="mt-2 text-3xl font-black text-white">Admin modules</h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            View available RTN admin tools and future modules planned for the
-            platform.
+            View available RTN admin tools currently connected to the platform.
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           <ModuleStatCard label="Total" value={adminModules.length} />
           <ModuleStatCard label="Ready" value={readyModules} />
-          <ModuleStatCard label="Future" value={futureModules} />
+          <ModuleStatCard label="Important" value={importantModules} />
         </div>
       </div>
 
