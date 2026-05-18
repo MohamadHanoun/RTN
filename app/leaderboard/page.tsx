@@ -5,9 +5,10 @@ import Footer from "@/components/Footer";
 import LeaderboardTable from "@/components/LeaderboardTable";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
-import type { LeaderboardUser } from "@/data/leaderboard";
-import { getGameImageUrl } from "@/lib/tournamentImages";
+import TeamLeaderboardTable from "@/components/TeamLeaderboardTable";
+import type { LeaderboardTeam, LeaderboardUser } from "@/data/leaderboard";
 import { prisma } from "@/lib/prisma";
+import { getGameImageUrl } from "@/lib/tournamentImages";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -20,6 +21,7 @@ export const dynamic = "force-dynamic";
 type LeaderboardPageProps = {
   searchParams: Promise<{
     game?: string;
+    type?: string;
   }>;
 };
 
@@ -37,20 +39,80 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function GameFilter({ selectedGame }: { selectedGame: string }) {
+function buildLeaderboardHref(game: string, type: "players" | "teams") {
+  const params = new URLSearchParams();
+
+  if (game !== "Overall") {
+    params.set("game", game);
+  }
+
+  if (type === "teams") {
+    params.set("type", "teams");
+  }
+
+  const query = params.toString();
+
+  return query ? `/leaderboard?${query}` : "/leaderboard";
+}
+
+function RankingTypeFilter({
+  selectedGame,
+  selectedType,
+}: {
+  selectedGame: string;
+  selectedType: "players" | "teams";
+}) {
+  return (
+    <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:grid-cols-2">
+      {[
+        {
+          label: "Players",
+          value: "players" as const,
+          description: "Rank players by tournament points.",
+        },
+        {
+          label: "Teams",
+          value: "teams" as const,
+          description: "Rank teams by tournament points.",
+        },
+      ].map((item) => {
+        const isActive = selectedType === item.value;
+
+        return (
+          <Link
+            key={item.value}
+            href={buildLeaderboardHref(selectedGame, item.value)}
+            className={`rounded-xl border px-4 py-3 transition ${
+              isActive
+                ? "border-indigo-400 bg-indigo-500/10 text-white"
+                : "border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <p className="font-black">{item.label}</p>
+            <p className="mt-1 text-xs text-gray-500">{item.description}</p>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function GameFilter({
+  selectedGame,
+  selectedType,
+}: {
+  selectedGame: string;
+  selectedType: "players" | "teams";
+}) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {games.map((game) => {
         const isActive = selectedGame === game;
-        const href =
-          game === "Overall"
-            ? "/leaderboard"
-            : `/leaderboard?game=${encodeURIComponent(game)}`;
 
         return (
           <Link
             key={game}
-            href={href}
+            href={buildLeaderboardHref(game, selectedType)}
             className={`group overflow-hidden rounded-2xl border transition ${
               isActive
                 ? "border-indigo-400 bg-indigo-500/10"
@@ -88,13 +150,17 @@ function GameFilter({ selectedGame }: { selectedGame: string }) {
 
 function SelectedGameHero({
   selectedGame,
-  rankedPlayers,
+  selectedType,
+  rankedItems,
   totalPoints,
 }: {
   selectedGame: string;
-  rankedPlayers: number;
+  selectedType: "players" | "teams";
+  rankedItems: number;
   totalPoints: number;
 }) {
+  const itemLabel = selectedType === "players" ? "player" : "team";
+
   return (
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]">
       <div
@@ -123,7 +189,8 @@ function SelectedGameHero({
 
           <div className="mt-5 flex flex-wrap gap-3">
             <span className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-black text-white">
-              {rankedPlayers} ranked player{rankedPlayers === 1 ? "" : "s"}
+              {rankedItems} ranked {itemLabel}
+              {rankedItems === 1 ? "" : "s"}
             </span>
 
             <span className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm font-black text-green-300">
@@ -136,7 +203,7 @@ function SelectedGameHero({
   );
 }
 
-async function getLeaderboard(
+async function getPlayerLeaderboard(
   selectedGame: string,
 ): Promise<LeaderboardUser[]> {
   const users = await prisma.user.findMany({
@@ -216,27 +283,122 @@ async function getLeaderboard(
   }));
 }
 
+async function getTeamLeaderboard(
+  selectedGame: string,
+): Promise<LeaderboardTeam[]> {
+  const teams = await prisma.team.findMany({
+    include: {
+      leader: {
+        select: {
+          username: true,
+        },
+      },
+      members: {
+        select: {
+          id: true,
+        },
+      },
+      results: {
+        select: {
+          id: true,
+          points: true,
+          placement: true,
+          tournament: {
+            select: {
+              game: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const leaderboardTeams = teams
+    .map((team) => {
+      const teamResults = team.results.filter((result) => {
+        if (selectedGame === "Overall") {
+          return true;
+        }
+
+        return result.tournament.game === selectedGame;
+      });
+
+      const tournamentResults = teamResults.length;
+
+      const tournamentPoints = teamResults.reduce(
+        (total, result) => total + result.points,
+        0,
+      );
+
+      const bestPlacement =
+        teamResults.length > 0
+          ? Math.min(...teamResults.map((result) => result.placement))
+          : null;
+
+      return {
+        id: team.id,
+        name: team.name,
+        game: team.game,
+        leaderName: team.leader.username,
+        membersCount: team.members.length,
+        tournamentResults,
+        tournamentPoints,
+        bestPlacement,
+      };
+    })
+    .filter((team) => team.tournamentPoints > 0)
+    .sort((a, b) => {
+      if (b.tournamentPoints !== a.tournamentPoints) {
+        return b.tournamentPoints - a.tournamentPoints;
+      }
+
+      if (b.tournamentResults !== a.tournamentResults) {
+        return b.tournamentResults - a.tournamentResults;
+      }
+
+      return (a.bestPlacement || 999) - (b.bestPlacement || 999);
+    });
+
+  return leaderboardTeams.map((team, index) => ({
+    ...team,
+    rank: index + 1,
+  }));
+}
+
 export default async function LeaderboardPage({
   searchParams,
 }: LeaderboardPageProps) {
   const params = await searchParams;
+
   const selectedGame = games.includes(params.game || "")
     ? params.game || "Overall"
     : "Overall";
 
-  const leaderboardUsers = await getLeaderboard(selectedGame);
+  const selectedType = params.type === "teams" ? "teams" : "players";
 
-  const totalPoints = leaderboardUsers.reduce(
-    (total, user) => total + user.tournamentPoints,
+  const playerLeaderboard =
+    selectedType === "players" ? await getPlayerLeaderboard(selectedGame) : [];
+
+  const teamLeaderboard =
+    selectedType === "teams" ? await getTeamLeaderboard(selectedGame) : [];
+
+  const activeLeaderboard =
+    selectedType === "players" ? playerLeaderboard : teamLeaderboard;
+
+  const totalPoints = activeLeaderboard.reduce(
+    (total, item) => total + item.tournamentPoints,
     0,
   );
 
-  const totalResults = leaderboardUsers.reduce(
-    (total, user) => total + user.tournamentResults,
+  const totalResults = activeLeaderboard.reduce(
+    (total, item) => total + item.tournamentResults,
     0,
   );
 
-  const topPlayer = leaderboardUsers[0]?.username || "-";
+  const topItem =
+    selectedType === "players"
+      ? playerLeaderboard[0]?.username || "-"
+      : teamLeaderboard[0]?.name || "-";
 
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
@@ -245,39 +407,58 @@ export default async function LeaderboardPage({
       <PageHeader
         label="RTN Leaderboard"
         title="Tournament points standings."
-        description="View RTN players ranked by official tournament points from saved tournament results."
+        description="View RTN players and teams ranked by official tournament points from saved tournament results."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="grid gap-6">
-          <GameFilter selectedGame={selectedGame} />
+          <RankingTypeFilter
+            selectedGame={selectedGame}
+            selectedType={selectedType}
+          />
+
+          <GameFilter selectedGame={selectedGame} selectedType={selectedType} />
 
           <SelectedGameHero
             selectedGame={selectedGame}
-            rankedPlayers={leaderboardUsers.length}
+            selectedType={selectedType}
+            rankedItems={activeLeaderboard.length}
             totalPoints={totalPoints}
           />
 
-          {leaderboardUsers.length > 0 ? (
+          {activeLeaderboard.length > 0 ? (
             <>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <StatCard
-                  label="Ranked players"
-                  value={leaderboardUsers.length}
+                  label={
+                    selectedType === "players"
+                      ? "Ranked players"
+                      : "Ranked teams"
+                  }
+                  value={activeLeaderboard.length}
                 />
                 <StatCard label="Total points" value={totalPoints} />
                 <StatCard label="Total results" value={totalResults} />
-                <StatCard label="Top player" value={topPlayer} />
+                <StatCard
+                  label={selectedType === "players" ? "Top player" : "Top team"}
+                  value={topItem}
+                />
               </div>
 
-              <LeaderboardTable users={leaderboardUsers} />
+              {selectedType === "players" ? (
+                <LeaderboardTable users={playerLeaderboard} />
+              ) : (
+                <TeamLeaderboardTable teams={teamLeaderboard} />
+              )}
             </>
           ) : (
             <EmptyState
               title="No tournament points yet"
               description={
                 selectedGame === "Overall"
-                  ? "Player rankings will appear here when tournament results are added."
+                  ? selectedType === "players"
+                    ? "Player rankings will appear here when tournament results are added."
+                    : "Team rankings will appear here when tournament results are added."
                   : `No tournament points have been awarded for ${selectedGame} yet.`
               }
               actionLabel="View tournaments"

@@ -12,6 +12,98 @@ export async function GET(request: NextRequest) {
       ? selectedGameParam
       : "Overall";
 
+    const selectedType =
+      request.nextUrl.searchParams.get("type") === "teams"
+        ? "teams"
+        : "players";
+
+    if (selectedType === "teams") {
+      const teams = await prisma.team.findMany({
+        include: {
+          leader: {
+            select: {
+              username: true,
+            },
+          },
+          members: {
+            select: {
+              id: true,
+            },
+          },
+          results: {
+            select: {
+              id: true,
+              points: true,
+              placement: true,
+              tournament: {
+                select: {
+                  game: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const leaderboard = teams
+        .map((team) => {
+          const teamResults = team.results.filter((result) => {
+            if (selectedGame === "Overall") {
+              return true;
+            }
+
+            return result.tournament.game === selectedGame;
+          });
+
+          const tournamentResults = teamResults.length;
+
+          const tournamentPoints = teamResults.reduce(
+            (total, result) => total + result.points,
+            0,
+          );
+
+          const bestPlacement =
+            teamResults.length > 0
+              ? Math.min(...teamResults.map((result) => result.placement))
+              : null;
+
+          return {
+            id: team.id,
+            name: team.name,
+            game: team.game,
+            leaderName: team.leader.username,
+            membersCount: team.members.length,
+            tournamentResults,
+            tournamentPoints,
+            bestPlacement,
+          };
+        })
+        .filter((team) => team.tournamentPoints > 0)
+        .sort((a, b) => {
+          if (b.tournamentPoints !== a.tournamentPoints) {
+            return b.tournamentPoints - a.tournamentPoints;
+          }
+
+          if (b.tournamentResults !== a.tournamentResults) {
+            return b.tournamentResults - a.tournamentResults;
+          }
+
+          return (a.bestPlacement || 999) - (b.bestPlacement || 999);
+        })
+        .map((team, index) => ({
+          ...team,
+          rank: index + 1,
+        }));
+
+      return NextResponse.json({
+        success: true,
+        source: "database",
+        game: selectedGame,
+        type: selectedType,
+        data: leaderboard,
+      });
+    }
+
     const users = await prisma.user.findMany({
       include: {
         teamMemberships: {
@@ -91,6 +183,7 @@ export async function GET(request: NextRequest) {
       success: true,
       source: "database",
       game: selectedGame,
+      type: selectedType,
       data: leaderboard,
     });
   } catch (error) {
