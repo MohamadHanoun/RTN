@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
+import Link from "next/link";
 import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import ProfileNotice from "@/components/ProfileNotice";
-import TournamentRegistrationPanel from "@/components/TournamentRegistrationPanel";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Tournaments",
-  description: "Browse RTN tournaments and registration information.",
+  description: "Browse RTN tournaments.",
 };
 
 type TournamentsPageProps = {
@@ -22,73 +21,42 @@ type TournamentsPageProps = {
   }>;
 };
 
-function statusStyle(status: string) {
-  if (status === "open") {
-    return "border-green-500/20 bg-green-500/10 text-green-300";
-  }
+function StatusBadge({ status }: { status: string }) {
+  const normalizedStatus = status.toLowerCase();
 
-  if (status === "closed") {
-    return "border-red-500/20 bg-red-500/10 text-red-300";
-  }
+  const styles: Record<string, string> = {
+    open: "border-green-500/20 bg-green-500/10 text-green-300",
+    approved: "border-green-500/20 bg-green-500/10 text-green-300",
+    upcoming: "border-yellow-500/20 bg-yellow-500/10 text-yellow-300",
+    pending: "border-yellow-500/20 bg-yellow-500/10 text-yellow-300",
+    closed: "border-red-500/20 bg-red-500/10 text-red-300",
+    rejected: "border-red-500/20 bg-red-500/10 text-red-300",
+    registered: "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
+  };
 
-  return "border-indigo-500/20 bg-indigo-500/10 text-indigo-300";
+  return (
+    <span
+      className={`inline-flex w-fit rounded border px-3 py-1 text-xs font-bold capitalize ${
+        styles[normalizedStatus] || "border-white/10 bg-white/5 text-gray-300"
+      }`}
+    >
+      {status}
+    </span>
+  );
 }
 
-function registrationStyle(status: string) {
+function RegistrationBadge({ status }: { status: string }) {
   if (status === "open") {
-    return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
+    return <StatusBadge status="Open" />;
   }
 
-  return "border-gray-500/20 bg-gray-500/10 text-gray-300";
-}
-
-function statusLabel(status: string) {
-  if (status === "open") {
-    return "Open";
-  }
-
-  if (status === "closed") {
-    return "Closed";
-  }
-
-  return "Upcoming";
-}
-
-function registrationLabel(status: string) {
-  if (status === "open") {
-    return "Registration Open";
-  }
-
-  return "Registration Closed";
+  return <StatusBadge status="Closed" />;
 }
 
 export default async function TournamentsPage({
   searchParams,
 }: TournamentsPageProps) {
   const params = await searchParams;
-  const session = await auth();
-
-  const currentUser = session?.user?.databaseId
-    ? await prisma.user.findUnique({
-        where: {
-          id: session.user.databaseId,
-        },
-        include: {
-          ownedTeams: {
-            where: {
-              status: "approved",
-            },
-            include: {
-              members: true,
-            },
-          },
-        },
-      })
-    : null;
-
-  const ownedTeamIds = new Set(
-    currentUser?.ownedTeams.map((team) => team.id) || [],
-  );
 
   const tournaments = await prisma.tournament.findMany({
     orderBy: {
@@ -113,13 +81,6 @@ export default async function TournamentsPage({
         },
         select: {
           id: true,
-          status: true,
-          teamId: true,
-          team: {
-            select: {
-              name: true,
-            },
-          },
         },
       },
     },
@@ -131,8 +92,8 @@ export default async function TournamentsPage({
 
       <PageHeader
         label="RTN Tournaments"
-        title="Compete with your team."
-        description="Browse RTN tournaments, check registration status, and register your approved team."
+        title="Browse RTN tournaments."
+        description="Find upcoming tournaments, check registration status, and open a tournament page to view details or register your approved team."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
@@ -144,141 +105,96 @@ export default async function TournamentsPage({
             description="RTN tournaments will appear here when they are created by the admin team."
           />
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {tournaments.map((tournament) => {
-              const usedSlots = tournament.registrations.length;
-              const remainingSlots = Math.max(
-                tournament.maxSlots - usedSlots,
-                0,
-              );
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+            <div className="border-b border-white/10 bg-white/[0.03] px-5 py-4">
+              <h2 className="text-xl font-black text-white">Tournament List</h2>
 
-              const availableTeams =
-                currentUser?.ownedTeams
-                  .filter(
-                    (team) =>
-                      team.game === tournament.game &&
-                      team.members.length >= tournament.teamSize,
-                  )
-                  .map((team) => ({
-                    id: team.id,
-                    name: team.name,
-                    game: team.game,
-                    memberCount: team.members.length,
-                  })) || [];
+              <p className="mt-1 text-sm text-gray-400">
+                Open a tournament to view full details and registration options.
+              </p>
+            </div>
 
-              const activeRegistrations = tournament.registrations
-                .filter((registration) => ownedTeamIds.has(registration.teamId))
-                .map((registration) => ({
-                  id: registration.id,
-                  status: registration.status,
-                  teamName: registration.team.name,
-                }));
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-white/10 bg-black/20 text-xs font-black uppercase tracking-[0.12em] text-gray-400">
+                    <th className="w-[32%] px-5 py-4">Tournament</th>
+                    <th className="w-[14%] px-5 py-4">Game</th>
+                    <th className="w-[12%] px-5 py-4">Team Size</th>
+                    <th className="w-[12%] px-5 py-4">Slots</th>
+                    <th className="w-[12%] px-5 py-4">Status</th>
+                    <th className="w-[12%] px-5 py-4">Registration</th>
+                    <th className="w-[6%] px-5 py-4 text-right">Action</th>
+                  </tr>
+                </thead>
 
-              return (
-                <article
-                  key={tournament.id}
-                  className="overflow-hidden rounded-3xl border border-white/10 bg-white/5"
-                >
-                  <div className="border-b border-white/10 bg-white/[0.03] p-6">
-                    <div className="mb-5 flex flex-wrap items-center gap-3">
-                      <span
-                        className={`rounded-full border px-4 py-1 text-sm font-bold ${statusStyle(
-                          tournament.status,
-                        )}`}
+                <tbody>
+                  {tournaments.map((tournament) => {
+                    const usedSlots = tournament.registrations.length;
+                    const remainingSlots = Math.max(
+                      tournament.maxSlots - usedSlots,
+                      0,
+                    );
+
+                    return (
+                      <tr
+                        key={tournament.id}
+                        className="border-b border-white/10 transition last:border-b-0 hover:bg-white/[0.035]"
                       >
-                        {statusLabel(tournament.status)}
-                      </span>
+                        <td className="px-5 py-5 align-middle">
+                          <p className="font-black text-white">
+                            {tournament.title}
+                          </p>
 
-                      <span
-                        className={`rounded-full border px-4 py-1 text-sm font-bold ${registrationStyle(
-                          tournament.registrationStatus,
-                        )}`}
-                      >
-                        {registrationLabel(tournament.registrationStatus)}
-                      </span>
-                    </div>
+                          <p className="mt-1 text-sm text-gray-400">
+                            {tournament.date} · Prize: {tournament.prize}
+                          </p>
+                        </td>
 
-                    <h2 className="text-3xl font-black">{tournament.title}</h2>
-
-                    <p className="mt-3 leading-7 text-gray-300">
-                      {tournament.description}
-                    </p>
-                  </div>
-
-                  <div className="grid gap-4 p-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-                          Game
-                        </p>
-
-                        <p className="mt-2 text-lg font-bold">
+                        <td className="px-5 py-5 align-middle text-gray-300">
                           {tournament.game}
-                        </p>
-                      </div>
+                        </td>
 
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-                          Date
-                        </p>
+                        <td className="px-5 py-5 align-middle">
+                          <span className="font-bold text-white">
+                            {tournament.teamSize}v{tournament.teamSize}
+                          </span>
+                        </td>
 
-                        <p className="mt-2 text-lg font-bold">
-                          {tournament.date}
-                        </p>
-                      </div>
+                        <td className="px-5 py-5 align-middle">
+                          <p className="font-bold text-white">
+                            {usedSlots}/{tournament.maxSlots}
+                          </p>
 
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-                          Team Size
-                        </p>
+                          <p className="mt-1 text-xs text-gray-400">
+                            {remainingSlots} left
+                          </p>
+                        </td>
 
-                        <p className="mt-2 text-lg font-bold">
-                          {tournament.teamSize} player
-                          {tournament.teamSize === 1 ? "" : "s"}
-                        </p>
-                      </div>
+                        <td className="px-5 py-5 align-middle">
+                          <StatusBadge status={tournament.status} />
+                        </td>
 
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-                          Slots
-                        </p>
+                        <td className="px-5 py-5 align-middle">
+                          <RegistrationBadge
+                            status={tournament.registrationStatus}
+                          />
+                        </td>
 
-                        <p className="mt-2 text-lg font-bold">
-                          {usedSlots}/{tournament.maxSlots} teams
-                        </p>
-
-                        <p className="mt-1 text-sm text-gray-400">
-                          {remainingSlots} slot
-                          {remainingSlots === 1 ? "" : "s"} remaining
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-4">
-                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-300">
-                        Prize
-                      </p>
-
-                      <p className="mt-2 text-xl font-black">
-                        {tournament.prize}
-                      </p>
-                    </div>
-
-                    <TournamentRegistrationPanel
-                      tournamentId={tournament.id}
-                      tournamentStatus={tournament.status}
-                      registrationStatus={tournament.registrationStatus}
-                      slotsRemaining={remainingSlots}
-                      teamSize={tournament.teamSize}
-                      isLoggedIn={Boolean(currentUser)}
-                      isGuildMember={Boolean(currentUser?.isGuildMember)}
-                      availableTeams={availableTeams}
-                      activeRegistrations={activeRegistrations}
-                    />
-                  </div>
-                </article>
-              );
-            })}
+                        <td className="px-5 py-5 text-right align-middle">
+                          <Link
+                            href={`/tournaments/${tournament.id}`}
+                            className="inline-flex rounded bg-indigo-500 px-4 py-2 text-sm font-black text-white transition hover:bg-indigo-400"
+                          >
+                            Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </section>

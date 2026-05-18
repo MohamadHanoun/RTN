@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 const allowedGames = ["Valorant", "League of Legends", "CS2", "Dota2"];
 
@@ -13,6 +13,22 @@ function profileRedirect(message: string): never {
 
 function profileError(message: string): never {
   redirect(`/profile?error=${encodeURIComponent(message)}`);
+}
+
+function teamRedirect(teamId: string, message: string): never {
+  redirect(`/profile/teams/${teamId}?message=${encodeURIComponent(message)}`);
+}
+
+function teamError(teamId: string, message: string): never {
+  if (!teamId) {
+    return profileError(message);
+  }
+
+  redirect(`/profile/teams/${teamId}?error=${encodeURIComponent(message)}`);
+}
+
+function getTeamId(formData: FormData) {
+  return String(formData.get("teamId") || formData.get("id") || "").trim();
 }
 
 async function requireUser() {
@@ -35,9 +51,16 @@ async function requireUser() {
   return user;
 }
 
-function requireGuildMember(user: { isGuildMember: boolean }) {
+function requireGuildMember(user: { isGuildMember: boolean }, teamId?: string) {
   if (!user.isGuildMember) {
-    profileError("Join the RTN Discord server to use team features.");
+    if (teamId) {
+      return teamError(
+        teamId,
+        "Join the RTN Discord server to use team features.",
+      );
+    }
+
+    return profileError("Join the RTN Discord server to use team features.");
   }
 }
 
@@ -47,33 +70,32 @@ async function requireTeamLeader(teamId: string, userId: string) {
       id: teamId,
     },
     include: {
-      members: {
-        include: {
-          user: true,
-        },
-      },
-      invites: {
-        include: {
-          invitedUser: true,
-        },
-      },
+      members: true,
+      invites: true,
     },
   });
 
   if (!team) {
-    profileError("Team was not found.");
+    return teamError(teamId, "Team was not found.");
   }
 
   if (team.leaderId !== userId) {
-    profileError("Only the team leader can manage this team.");
+    return teamError(team.id, "Only the team leader can manage this team.");
   }
 
   return team;
 }
 
-function requireEditableTeam(status: string) {
+function requireEditableTeam(teamId: string, status: string) {
+  if (status === "pending") {
+    return teamError(
+      teamId,
+      "This team is already submitted for admin review.",
+    );
+  }
+
   if (status === "approved") {
-    profileError("Approved teams cannot be edited yet.");
+    return teamError(teamId, "Approved teams cannot be edited yet.");
   }
 }
 
@@ -85,11 +107,11 @@ export async function createTeam(formData: FormData) {
   const game = String(formData.get("game") || "").trim();
 
   if (!name || !game) {
-    profileError("Team name and game are required.");
+    return profileError("Team name and game are required.");
   }
 
   if (!allowedGames.includes(game)) {
-    profileError("Invalid game selected.");
+    return profileError("Invalid game selected.");
   }
 
   const existingTeam = await prisma.team.findFirst({
@@ -103,52 +125,60 @@ export async function createTeam(formData: FormData) {
   });
 
   if (existingTeam) {
-    profileError("You already have a team with this name.");
+    return profileError("You already have a team with this name.");
   }
 
-  await prisma.$transaction(async (tx) => {
-    const team = await tx.team.create({
+  const team = await prisma.$transaction(async (tx) => {
+    const createdTeam = await tx.team.create({
       data: {
         name,
         game,
         leaderId: user.id,
         status: "draft",
+        rejectedAt: null,
+        rejectionReason: null,
+        submittedAt: null,
       },
     });
 
     await tx.teamMember.create({
       data: {
-        teamId: team.id,
+        teamId: createdTeam.id,
         userId: user.id,
         role: "leader",
       },
     });
+
+    return createdTeam;
   });
 
   revalidatePath("/profile");
-  profileRedirect("Team created successfully.");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  teamRedirect(team.id, "Team created successfully.");
 }
 
 export async function updateTeam(formData: FormData) {
   const user = await requireUser();
-  requireGuildMember(user);
 
-  const teamId = String(formData.get("teamId") || "").trim();
+  const teamId = getTeamId(formData);
+  requireGuildMember(user, teamId);
+
   const name = String(formData.get("name") || "").trim();
   const game = String(formData.get("game") || "").trim();
 
   if (!teamId || !name || !game) {
-    profileError("Team ID, name, and game are required.");
+    return teamError(teamId, "Team ID, name, and game are required.");
   }
 
   if (!allowedGames.includes(game)) {
-    profileError("Invalid game selected.");
+    return teamError(teamId, "Invalid game selected.");
   }
 
   const team = await requireTeamLeader(teamId, user.id);
-  requireEditableTeam(team.status);
+  requireEditableTeam(team.id, team.status);
 
-  await prisma.team.update({
+  const updatedTeam = await prisma.team.update({
     where: {
       id: team.id,
     },
@@ -162,56 +192,58 @@ export async function updateTeam(formData: FormData) {
   });
 
   revalidatePath("/profile");
-  profileRedirect("Team updated successfully.");
+  revalidatePath(`/profile/teams/${updatedTeam.id}`);
+
+  teamRedirect(updatedTeam.id, "Team updated successfully.");
 }
 
 export async function invitePlayerToTeam(formData: FormData) {
   const user = await requireUser();
-  requireGuildMember(user);
 
-  const teamId = String(formData.get("teamId") || "").trim();
-  const playerId = String(formData.get("playerId") || "").trim();
+  const teamId = getTeamId(formData);
+  requireGuildMember(user, teamId);
+
   const player = String(formData.get("player") || "").trim();
 
-  if (!teamId || (!playerId && !player)) {
-    profileError("Team and player are required.");
+  if (!teamId || !player) {
+    return teamError(teamId, "Team and player are required.");
   }
 
   const team = await requireTeamLeader(teamId, user.id);
-  requireEditableTeam(team.status);
+  requireEditableTeam(team.id, team.status);
 
-  const invitedUser = playerId
-    ? await prisma.user.findUnique({
-        where: {
-          id: playerId,
+  const invitedUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          discordId: player,
         },
-      })
-    : await prisma.user.findFirst({
-        where: {
-          OR: [
-            {
-              discordId: player,
-            },
-            {
-              username: {
-                equals: player,
-                mode: "insensitive",
-              },
-            },
-          ],
+        {
+          username: {
+            equals: player,
+            mode: "insensitive",
+          },
         },
-      });
+      ],
+    },
+  });
 
   if (!invitedUser) {
-    profileError("Player was not found. They must login to the website first.");
+    return teamError(
+      team.id,
+      "Player was not found. They must login to the website first.",
+    );
   }
 
   if (!invitedUser.isGuildMember) {
-    profileError("This player must join the RTN Discord server first.");
+    return teamError(
+      team.id,
+      "This player must join the RTN Discord server first.",
+    );
   }
 
   if (invitedUser.id === user.id) {
-    profileError("You are already the leader of this team.");
+    return teamError(team.id, "You are already the leader of this team.");
   }
 
   const existingMember = await prisma.teamMember.findUnique({
@@ -224,7 +256,7 @@ export async function invitePlayerToTeam(formData: FormData) {
   });
 
   if (existingMember) {
-    profileError("This player is already in the team.");
+    return teamError(team.id, "This player is already in the team.");
   }
 
   const existingInvite = await prisma.teamInvite.findUnique({
@@ -237,7 +269,7 @@ export async function invitePlayerToTeam(formData: FormData) {
   });
 
   if (existingInvite?.status === "pending") {
-    profileError("This player already has a pending invitation.");
+    return teamError(team.id, "This player already has a pending invitation.");
   }
 
   if (existingInvite) {
@@ -249,6 +281,7 @@ export async function invitePlayerToTeam(formData: FormData) {
         status: "pending",
         invitedById: user.id,
         respondedAt: null,
+        createdAt: new Date(),
       },
     });
   } else {
@@ -263,16 +296,19 @@ export async function invitePlayerToTeam(formData: FormData) {
   }
 
   revalidatePath("/profile");
-  profileRedirect("Invitation sent successfully.");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  teamRedirect(team.id, "Invitation sent successfully.");
 }
 
 export async function cancelTeamInvite(formData: FormData) {
   const user = await requireUser();
 
+  const teamIdFromForm = getTeamId(formData);
   const inviteId = String(formData.get("inviteId") || "").trim();
 
   if (!inviteId) {
-    profileError("Invite ID is missing.");
+    return teamError(teamIdFromForm, "Invite ID is missing.");
   }
 
   const invite = await prisma.teamInvite.findUnique({
@@ -285,14 +321,15 @@ export async function cancelTeamInvite(formData: FormData) {
   });
 
   if (!invite) {
-    profileError("Invitation was not found.");
+    return teamError(teamIdFromForm, "Invitation was not found.");
   }
 
   if (invite.team.leaderId !== user.id) {
-    profileError("Only the team leader can cancel invitations.");
+    return teamError(
+      invite.teamId,
+      "Only the team leader can cancel invitations.",
+    );
   }
-
-  requireEditableTeam(invite.team.status);
 
   await prisma.teamInvite.delete({
     where: {
@@ -301,7 +338,110 @@ export async function cancelTeamInvite(formData: FormData) {
   });
 
   revalidatePath("/profile");
-  profileRedirect("Invitation cancelled.");
+  revalidatePath(`/profile/teams/${invite.teamId}`);
+
+  teamRedirect(invite.teamId, "Invitation cancelled.");
+}
+
+export async function removeTeamMember(formData: FormData) {
+  const user = await requireUser();
+
+  const teamId = getTeamId(formData);
+  requireGuildMember(user, teamId);
+
+  const memberId = String(formData.get("memberId") || "").trim();
+
+  if (!teamId || !memberId) {
+    return teamError(teamId, "Team ID and member ID are required.");
+  }
+
+  const team = await requireTeamLeader(teamId, user.id);
+  requireEditableTeam(team.id, team.status);
+
+  const member = await prisma.teamMember.findUnique({
+    where: {
+      id: memberId,
+    },
+  });
+
+  if (!member || member.teamId !== team.id) {
+    return teamError(team.id, "Team member was not found.");
+  }
+
+  if (member.userId === user.id || member.role === "leader") {
+    return teamError(team.id, "The team leader cannot be removed.");
+  }
+
+  await prisma.teamMember.delete({
+    where: {
+      id: member.id,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  teamRedirect(team.id, "Team member removed.");
+}
+
+export async function submitTeamForReview(formData: FormData) {
+  const user = await requireUser();
+
+  const teamId = getTeamId(formData);
+  requireGuildMember(user, teamId);
+
+  if (!teamId) {
+    return teamError(teamId, "Team ID is missing.");
+  }
+
+  const team = await requireTeamLeader(teamId, user.id);
+
+  if (!["draft", "rejected"].includes(team.status)) {
+    return teamError(team.id, "This team cannot be submitted right now.");
+  }
+
+  await prisma.team.update({
+    where: {
+      id: team.id,
+    },
+    data: {
+      status: "pending",
+      submittedAt: new Date(),
+      rejectedAt: null,
+      rejectionReason: null,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  teamRedirect(team.id, "Team submitted for admin review.");
+}
+
+export async function deleteTeam(formData: FormData) {
+  const user = await requireUser();
+
+  const teamId = getTeamId(formData);
+
+  if (!teamId) {
+    return profileError("Team ID is missing.");
+  }
+
+  const team = await requireTeamLeader(teamId, user.id);
+
+  if (team.status === "approved") {
+    return teamError(team.id, "Approved teams cannot be deleted yet.");
+  }
+
+  await prisma.team.delete({
+    where: {
+      id: team.id,
+    },
+  });
+
+  revalidatePath("/profile");
+
+  profileRedirect("Team deleted.");
 }
 
 export async function respondToTeamInvite(formData: FormData) {
@@ -312,7 +452,7 @@ export async function respondToTeamInvite(formData: FormData) {
   const response = String(formData.get("response") || "").trim();
 
   if (!inviteId || !["accepted", "rejected"].includes(response)) {
-    profileError("Invalid invitation response.");
+    return profileError("Invalid invitation response.");
   }
 
   const invite = await prisma.teamInvite.findUnique({
@@ -325,19 +465,23 @@ export async function respondToTeamInvite(formData: FormData) {
   });
 
   if (!invite) {
-    profileError("Invitation was not found.");
+    return profileError("Invitation was not found.");
   }
 
   if (invite.invitedUserId !== user.id) {
-    profileError("This invitation does not belong to you.");
+    return profileError("This invitation does not belong to you.");
   }
 
   if (invite.status !== "pending") {
-    profileError("This invitation has already been handled.");
+    return profileError("This invitation has already been handled.");
+  }
+
+  if (invite.team.status === "pending") {
+    return profileError("This team has already been submitted for review.");
   }
 
   if (invite.team.status === "approved") {
-    profileError("Approved team changes are not available yet.");
+    return profileError("Approved team changes are not available yet.");
   }
 
   if (response === "accepted") {
@@ -362,6 +506,8 @@ export async function respondToTeamInvite(formData: FormData) {
     });
 
     revalidatePath("/profile");
+    revalidatePath(`/profile/teams/${invite.teamId}`);
+
     profileRedirect("Invitation accepted.");
   }
 
@@ -376,101 +522,7 @@ export async function respondToTeamInvite(formData: FormData) {
   });
 
   revalidatePath("/profile");
+  revalidatePath(`/profile/teams/${invite.teamId}`);
+
   profileRedirect("Invitation rejected.");
-}
-
-export async function removeTeamMember(formData: FormData) {
-  const user = await requireUser();
-
-  const teamId = String(formData.get("teamId") || "").trim();
-  const memberId = String(formData.get("memberId") || "").trim();
-
-  if (!teamId || !memberId) {
-    profileError("Team ID and member ID are required.");
-  }
-
-  const team = await requireTeamLeader(teamId, user.id);
-  requireEditableTeam(team.status);
-
-  const member = await prisma.teamMember.findUnique({
-    where: {
-      id: memberId,
-    },
-  });
-
-  if (!member || member.teamId !== team.id) {
-    profileError("Team member was not found.");
-  }
-
-  if (member.userId === user.id || member.role === "leader") {
-    profileError("The team leader cannot be removed.");
-  }
-
-  await prisma.teamMember.delete({
-    where: {
-      id: member.id,
-    },
-  });
-
-  revalidatePath("/profile");
-  profileRedirect("Team member removed.");
-}
-
-export async function submitTeamForReview(formData: FormData) {
-  const user = await requireUser();
-  requireGuildMember(user);
-
-  const teamId = String(formData.get("teamId") || "").trim();
-
-  if (!teamId) {
-    profileError("Team ID is missing.");
-  }
-
-  const team = await requireTeamLeader(teamId, user.id);
-
-  if (!["draft", "pending", "rejected"].includes(team.status)) {
-    profileError("This team cannot be submitted right now.");
-  }
-
-  await prisma.team.update({
-    where: {
-      id: team.id,
-    },
-    data: {
-      status: "pending",
-      submittedAt: new Date(),
-      rejectedAt: null,
-      rejectionReason: null,
-    },
-  });
-
-  revalidatePath("/profile");
-  profileRedirect("Team submitted for admin review.");
-}
-
-export async function deleteTeam(formData: FormData) {
-  const user = await requireUser();
-
-  const teamId =
-    String(formData.get("teamId") || "").trim() ||
-    String(formData.get("id") || "").trim();
-
-  if (!teamId) {
-    profileError("Team ID is missing.");
-  }
-
-  const team = await requireTeamLeader(teamId, user.id);
-
-  if (team.status === "approved") {
-    profileError("Approved teams cannot be deleted yet.");
-  }
-
-  await prisma.team.delete({
-    where: {
-      id: team.id,
-    },
-  });
-
-  revalidatePath("/profile");
-  profileRedirect("Team deleted.");
 }
