@@ -5,6 +5,7 @@ import AdminAnnouncementList from "@/components/AdminAnnouncementList";
 import AdminModuleCard from "@/components/AdminModuleCard";
 import AdminOverview from "@/components/AdminOverview";
 import AdminPlayersList from "@/components/AdminPlayersList";
+import AdminRegistrationList from "@/components/AdminRegistrationList";
 import AdminRoleForm from "@/components/AdminRoleForm";
 import AdminRoleList from "@/components/AdminRoleList";
 import AdminRuleForm from "@/components/AdminRuleForm";
@@ -22,7 +23,6 @@ import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import { adminModules } from "@/data/admin";
 import { prisma } from "@/lib/prisma";
-import AdminTournamentRegistrations from "@/components/AdminTournamentRegistrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,13 +45,13 @@ const allowedTabs = [
   "overview",
   "announcements",
   "tournaments",
+  "registrations",
   "teams",
   "players",
   "rules",
   "roles",
   "staff",
   "modules",
-  "registrations",
 ];
 
 async function getAdminOverview() {
@@ -63,7 +63,7 @@ async function getAdminOverview() {
     announcementsCount,
     usersCount,
     teamsCount,
-    pendingTeamsCount,
+    pendingRegistrationsCount,
   ] = await Promise.all([
     prisma.rule.count({
       where: {
@@ -88,9 +88,9 @@ async function getAdminOverview() {
     }),
     prisma.user.count(),
     prisma.team.count(),
-    prisma.team.count({
+    prisma.tournamentRegistration.count({
       where: {
-        status: "pending",
+        status: "registered",
       },
     }),
   ]);
@@ -111,8 +111,14 @@ async function getAdminOverview() {
     {
       label: "Teams",
       value: String(teamsCount),
-      description: `${pendingTeamsCount} team request${
-        pendingTeamsCount === 1 ? "" : "s"
+      description:
+        "Teams created by players. Admin approval is only needed for tournament registrations.",
+    },
+    {
+      label: "Pending Registrations",
+      value: String(pendingRegistrationsCount),
+      description: `${pendingRegistrationsCount} tournament registration${
+        pendingRegistrationsCount === 1 ? "" : "s"
       } waiting for review.`,
     },
     {
@@ -133,14 +139,6 @@ function renderAdminTab(
   if (activeTab === "overview") {
     return <AdminOverview items={overviewItems} />;
   }
-  if (activeTab === "registrations") {
-  return (
-    <AdminTournamentRegistrations
-      message={message}
-      error={error}
-    />
-  );
-}
 
   if (activeTab === "announcements") {
     return (
@@ -159,8 +157,9 @@ function renderAdminTab(
       </>
     );
   }
+
   if (activeTab === "registrations") {
-    return <AdminTournamentRegistrations message={message} error={error} />;
+    return <AdminRegistrationList message={message} error={error} />;
   }
 
   if (activeTab === "teams") {
@@ -291,6 +290,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   }
 
   const overviewItems = await getAdminOverview();
+  const shouldShowGlobalToast =
+    activeTab !== "teams" && activeTab !== "registrations";
 
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
@@ -299,7 +300,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <PageHeader
         label="RTN Admin Panel"
         title="Manage the RTN community from one place."
-        description="A protected dashboard for managing announcements, tournaments, teams, players, rules, roles, staff, and future RTN tools."
+        description="A protected dashboard for managing announcements, tournaments, registrations, teams, players, rules, roles, staff, and future RTN tools."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-6">
@@ -315,7 +316,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
             <p className="mt-2 max-w-3xl leading-7 text-gray-300">
               Welcome, {session.user.name}. Use the sections below to manage RTN
-              content, teams, players, and community tools.
+              content, tournament registrations, teams, players, and community
+              tools.
             </p>
           </div>
         </div>
@@ -323,7 +325,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
       <AdminTabNavigation activeTab={activeTab} />
 
-      {activeTab !== "teams" && (
+      {shouldShowGlobalToast && (
         <AdminToast message={params.message} type={toastType} />
       )}
 

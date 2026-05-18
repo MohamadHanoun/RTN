@@ -127,6 +127,7 @@ model TournamentRegistration {
   rejectionReason String?
   approvedAt      DateTime?
   cancelledAt     DateTime?
+  reviewedAt      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
