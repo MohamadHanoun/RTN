@@ -6,6 +6,7 @@ import LeaderboardTable from "@/components/LeaderboardTable";
 import Navbar from "@/components/Navbar";
 import PageHeader from "@/components/PageHeader";
 import type { LeaderboardUser } from "@/data/leaderboard";
+import { getGameImageUrl } from "@/lib/tournamentImages";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 
 function GameFilter({ selectedGame }: { selectedGame: string }) {
   return (
-    <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {games.map((game) => {
         const isActive = selectedGame === game;
         const href =
@@ -50,17 +51,88 @@ function GameFilter({ selectedGame }: { selectedGame: string }) {
           <Link
             key={game}
             href={href}
-            className={`rounded-xl px-4 py-2 text-sm font-black transition ${
+            className={`group overflow-hidden rounded-2xl border transition ${
               isActive
-                ? "bg-indigo-500 text-white"
-                : "border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "border-indigo-400 bg-indigo-500/10"
+                : "border-white/10 bg-white/[0.04] hover:border-cyan-400/30 hover:bg-white/[0.06]"
             }`}
           >
-            {game}
+            <div
+              className="min-h-28 bg-cover bg-center"
+              style={{
+                backgroundImage: `linear-gradient(to bottom, rgba(11,15,26,0.05), rgba(11,15,26,0.82)), url("${getGameImageUrl(
+                  game,
+                )}")`,
+              }}
+            />
+
+            <div className="p-4">
+              <p
+                className={`text-sm font-black ${
+                  isActive ? "text-white" : "text-gray-300"
+                }`}
+              >
+                {game}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-500">
+                {isActive ? "Selected ranking" : "View ranking"}
+              </p>
+            </div>
           </Link>
         );
       })}
     </div>
+  );
+}
+
+function SelectedGameHero({
+  selectedGame,
+  rankedPlayers,
+  totalPoints,
+}: {
+  selectedGame: string;
+  rankedPlayers: number;
+  totalPoints: number;
+}) {
+  return (
+    <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]">
+      <div
+        className="relative min-h-72 bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgba(11,15,26,0.96), rgba(11,15,26,0.72), rgba(11,15,26,0.18)), url("${getGameImageUrl(
+            selectedGame,
+          )}")`,
+        }}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.24)_0%,transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.14)_0%,transparent_26%)]" />
+
+        <div className="relative z-10 flex min-h-72 max-w-3xl flex-col justify-end p-7">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-300">
+            {selectedGame === "Overall" ? "Overall Ranking" : "Game Ranking"}
+          </p>
+
+          <h2 className="mt-3 text-4xl font-black text-white md:text-5xl">
+            {selectedGame}
+          </h2>
+
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-300">
+            Tournament points are calculated from official RTN tournament
+            results saved by admins.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <span className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-black text-white">
+              {rankedPlayers} ranked player{rankedPlayers === 1 ? "" : "s"}
+            </span>
+
+            <span className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm font-black text-green-300">
+              {totalPoints} total points
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -179,6 +251,12 @@ export default async function LeaderboardPage({
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="grid gap-6">
           <GameFilter selectedGame={selectedGame} />
+
+          <SelectedGameHero
+            selectedGame={selectedGame}
+            rankedPlayers={leaderboardUsers.length}
+            totalPoints={totalPoints}
+          />
 
           {leaderboardUsers.length > 0 ? (
             <>
