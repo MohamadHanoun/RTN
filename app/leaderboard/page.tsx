@@ -22,12 +22,10 @@ async function getLeaderboard(): Promise<LeaderboardUser[]> {
         include: {
           team: {
             include: {
-              registrations: {
-                where: {
-                  status: "approved",
-                },
+              results: {
                 select: {
                   id: true,
+                  points: true,
                 },
               },
             },
@@ -39,8 +37,18 @@ async function getLeaderboard(): Promise<LeaderboardUser[]> {
 
   const leaderboardUsers = users
     .map((user) => {
-      const approvedRegistrations = user.teamMemberships.reduce(
-        (total, membership) => total + membership.team.registrations.length,
+      const tournamentResults = user.teamMemberships.reduce(
+        (total, membership) => total + membership.team.results.length,
+        0,
+      );
+
+      const tournamentPoints = user.teamMemberships.reduce(
+        (total, membership) =>
+          total +
+          membership.team.results.reduce(
+            (pointsTotal, result) => pointsTotal + result.points,
+            0,
+          ),
         0,
       );
 
@@ -48,16 +56,17 @@ async function getLeaderboard(): Promise<LeaderboardUser[]> {
         id: user.id,
         username: user.username,
         role: user.role,
-        approvedRegistrations,
-        tournamentPoints: approvedRegistrations * 10,
+        tournamentResults,
+        tournamentPoints,
       };
     })
+    .filter((user) => user.tournamentPoints > 0)
     .sort((a, b) => {
       if (b.tournamentPoints !== a.tournamentPoints) {
         return b.tournamentPoints - a.tournamentPoints;
       }
 
-      return b.approvedRegistrations - a.approvedRegistrations;
+      return b.tournamentResults - a.tournamentResults;
     });
 
   return leaderboardUsers.map((user, index) => ({
@@ -76,7 +85,7 @@ export default async function LeaderboardPage() {
       <PageHeader
         label="RTN Leaderboard"
         title="Tournament points standings."
-        description="View RTN players ranked by tournament points earned from approved tournament participation."
+        description="View RTN players ranked by tournament points earned from tournament results."
       />
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
@@ -85,7 +94,7 @@ export default async function LeaderboardPage() {
         ) : (
           <EmptyState
             title="No tournament points yet"
-            description="Player rankings will appear here when tournament activity is available."
+            description="Player rankings will appear here when tournament results are added."
             actionLabel="View tournaments"
             actionHref="/tournaments"
           />

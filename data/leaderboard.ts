@@ -3,7 +3,7 @@ export type LeaderboardUser = {
   username: string;
   role: string;
   tournamentPoints: number;
-  approvedRegistrations: number;
+  tournamentResults: number;
   rank: number;
 };
 

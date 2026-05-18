@@ -39,11 +39,11 @@ function RoleBadge({ role }: { role: string }) {
 export default function LeaderboardTable({ users }: LeaderboardTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-      <div className="hidden border-b border-white/10 bg-white/[0.03] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-400 lg:grid lg:grid-cols-[90px_minmax(0,1fr)_180px_220px_180px] lg:gap-5">
+      <div className="hidden border-b border-white/10 bg-white/[0.03] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-400 lg:grid lg:grid-cols-[90px_minmax(0,1fr)_180px_180px_180px] lg:gap-5">
         <span>Rank</span>
         <span>Player</span>
         <span>Role</span>
-        <span>Approved registrations</span>
+        <span>Results</span>
         <span>Points</span>
       </div>
 
@@ -51,7 +51,7 @@ export default function LeaderboardTable({ users }: LeaderboardTableProps) {
         {users.map((user) => (
           <article
             key={user.id}
-            className="grid gap-4 p-5 transition hover:bg-white/[0.035] lg:grid-cols-[90px_minmax(0,1fr)_180px_220px_180px] lg:items-center lg:gap-5"
+            className="grid gap-4 p-5 transition hover:bg-white/[0.035] lg:grid-cols-[90px_minmax(0,1fr)_180px_180px_180px] lg:items-center lg:gap-5"
           >
             <RankBadge rank={user.rank} />
 
@@ -69,9 +69,9 @@ export default function LeaderboardTable({ users }: LeaderboardTableProps) {
 
             <p className="text-sm text-gray-300">
               <span className="font-black text-white">
-                {user.approvedRegistrations}
+                {user.tournamentResults}
               </span>{" "}
-              approved
+              result{user.tournamentResults === 1 ? "" : "s"}
             </p>
 
             <p className="text-sm font-black text-white">

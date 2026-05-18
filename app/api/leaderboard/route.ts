@@ -11,12 +11,10 @@ export async function GET() {
           include: {
             team: {
               include: {
-                registrations: {
-                  where: {
-                    status: "approved",
-                  },
+                results: {
                   select: {
                     id: true,
+                    points: true,
                   },
                 },
               },
@@ -28,8 +26,18 @@ export async function GET() {
 
     const leaderboard = users
       .map((user) => {
-        const approvedRegistrations = user.teamMemberships.reduce(
-          (total, membership) => total + membership.team.registrations.length,
+        const tournamentResults = user.teamMemberships.reduce(
+          (total, membership) => total + membership.team.results.length,
+          0,
+        );
+
+        const tournamentPoints = user.teamMemberships.reduce(
+          (total, membership) =>
+            total +
+            membership.team.results.reduce(
+              (pointsTotal, result) => pointsTotal + result.points,
+              0,
+            ),
           0,
         );
 
@@ -37,16 +45,17 @@ export async function GET() {
           id: user.id,
           username: user.username,
           role: user.role,
-          approvedRegistrations,
-          tournamentPoints: approvedRegistrations * 10,
+          tournamentResults,
+          tournamentPoints,
         };
       })
+      .filter((user) => user.tournamentPoints > 0)
       .sort((a, b) => {
         if (b.tournamentPoints !== a.tournamentPoints) {
           return b.tournamentPoints - a.tournamentPoints;
         }
 
-        return b.approvedRegistrations - a.approvedRegistrations;
+        return b.tournamentResults - a.tournamentResults;
       })
       .map((user, index) => ({
         ...user,
@@ -62,7 +71,7 @@ export async function GET() {
     console.error("Failed to fetch leaderboard:", error);
 
     return NextResponse.json(
-      {
+{
         success: false,
         message: "Failed to fetch leaderboard",
       },
