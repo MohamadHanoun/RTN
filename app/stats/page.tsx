@@ -17,6 +17,8 @@ async function getStatsData() {
     usersCount,
     teamsCount,
     approvedRegistrationsCount,
+    tournamentResultsCount,
+    tournamentPoints,
   ] = await Promise.all([
     prisma.rule.count({ where: { isActive: true } }),
     prisma.role.count({ where: { isActive: true } }),
@@ -28,6 +30,12 @@ async function getStatsData() {
     prisma.tournamentRegistration.count({
       where: {
         status: "approved",
+      },
+    }),
+    prisma.tournamentResult.count(),
+    prisma.tournamentResult.aggregate({
+      _sum: {
+        points: true,
       },
     }),
   ]);
@@ -47,6 +55,16 @@ async function getStatsData() {
       title: "Tournaments",
       value: String(tournamentsCount),
       description: "Tournament records available on RTN.",
+    },
+    {
+      title: "Tournament Results",
+      value: String(tournamentResultsCount),
+      description: "Final tournament results saved by admins.",
+    },
+    {
+      title: "Tournament Points",
+      value: String(tournamentPoints._sum.points || 0),
+      description: "Total points awarded from tournament results.",
     },
     {
       title: "Approved Registrations",
@@ -86,10 +104,10 @@ export default async function StatsPage() {
       <PageHeader
         label="RTN Stats"
         title="Community statistics."
-        description="Current RTN numbers for players, teams, tournaments, registrations, announcements, and community content."
+        description="Current RTN numbers for players, teams, tournaments, tournament results, points, and community content."
       />
 
-      <section className="mx-auto grid max-w-7xl gap-5 px-6 pb-24 md:grid-cols-2 xl:grid-cols-4">
+      <section className="mx-auto grid max-w-7xl gap-5 px-6 pb-24 md:grid-cols-2 xl:grid-cols-5">
         {stats.map((item) => (
           <StatsDetailCard
             key={item.title}

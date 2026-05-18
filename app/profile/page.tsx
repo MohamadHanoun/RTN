@@ -72,6 +72,24 @@ function PanelHeader({
   );
 }
 
+function ProfileStatCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+        {label}
+      </p>
+
+      <p className="mt-1 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const params = await searchParams;
   const session = await auth();
@@ -90,7 +108,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     redirect("/login");
   }
 
-  const [teams, invitations] = await Promise.all([
+  const [teams, invitations, tournamentResults] = await Promise.all([
     prisma.team.findMany({
       where: {
         members: {
@@ -120,239 +138,286 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         createdAt: "desc",
       },
     }),
+
+    prisma.tournamentResult.findMany({
+      where: {
+        team: {
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      },
+      include: {
+        team: true,
+        tournament: {
+          select: {
+            id: true,
+            title: true,
+            game: true,
+          },
+        },
+      },
+      orderBy: [
+        {
+          awardedAt: "desc",
+        },
+      ],
+    }),
   ]);
+
+  const tournamentPoints = tournamentResults.reduce(
+    (total, result) => total + result.points,
+    0,
+  );
+
+  const bestPlacement =
+    tournamentResults.length > 0
+      ? Math.min(...tournamentResults.map((result) => result.placement))
+      : null;
 
   return (
     <main className="min-h-screen bg-[#0b0f1a] text-white">
       <Navbar />
 
-      <section className="mx-auto max-w-7xl px-6 py-10">
+      <section className="mx-auto max-w-[1500px] px-6 py-10">
         <ProfileNotice message={params.message} error={params.error} />
 
-        <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-          <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div className="flex min-w-0 items-center gap-5">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.username}
-                  className="h-20 w-20 rounded-xl object-cover"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-indigo-500 text-xl font-black text-white">
-                  {user.username.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-
-              <div className="min-w-0">
-                <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
-                  Player Profile
-                </p>
-
-                <h1 className="mt-2 truncate text-4xl font-black text-white">
-                  {user.username}
-                </h1>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {user.isGuildMember ? (
-                    <StatusBadge status="Member" />
+        <div className="grid max-w-[900px] gap-8 xl:mx-auto">
+          <div className="grid min-w-0 gap-8">
+            <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+              <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="flex min-w-0 items-center gap-5">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.username}
+                      className="h-20 w-20 rounded-xl object-cover"
+                    />
                   ) : (
-                    <StatusBadge status="Not member" />
+                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-indigo-500 text-xl font-black text-white">
+                      {user.username.slice(0, 2).toUpperCase()}
+                    </div>
                   )}
 
-                  <span className="inline-flex rounded border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-300">
-                    {teams.length} team{teams.length === 1 ? "" : "s"}
-                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
+                      Player Profile
+                    </p>
 
-                  <span className="inline-flex rounded border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-300">
-                    {invitations.length} invite
-                    {invitations.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </div>
-            </div>
+                    <h1 className="mt-2 truncate text-4xl font-black text-white">
+                      {user.username}
+                    </h1>
 
-            <div className="grid gap-4 lg:justify-items-end">
-              <div>
-                <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-gray-500">
-                  Discord ID
-                </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {user.isGuildMember ? (
+                        <StatusBadge status="Member" />
+                      ) : (
+                        <StatusBadge status="Not member" />
+                      )}
 
-                <ProfileIdentityActions discordId={user.discordId} />
-              </div>
-            </div>
-          </div>
-        </section>
+                      <span className="inline-flex rounded border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-300">
+                        {teams.length} team{teams.length === 1 ? "" : "s"}
+                      </span>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-          <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-            <PanelHeader
-              label="Invitations"
-              title="Team invitations"
-              description="Accept or reject invitations sent by team leaders."
-            />
+                      <span className="inline-flex rounded border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-300">
+                        {tournamentPoints} points
+                      </span>
 
-            {invitations.length === 0 ? (
-              <div className="p-6 text-gray-300">No pending invitations.</div>
-            ) : (
-              <div className="divide-y divide-white/10">
-                {invitations.map((invite) => (
-                  <div
-                    key={invite.id}
-                    className="grid gap-4 px-6 py-5 sm:grid-cols-[1fr_auto] sm:items-center"
-                  >
-                    <div>
-                      <p className="font-black text-white">
-                        {invite.team.name}
-                      </p>
+                      <span className="inline-flex rounded border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-bold text-green-300">
+                        {tournamentResults.length} result
+                        {tournamentResults.length === 1 ? "" : "s"}
+                      </span>
 
-                      <p className="mt-1 text-sm text-gray-400">
-                        {invite.team.game} · invited by{" "}
-                        {invite.invitedBy.username}
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <form action={respondToTeamInvite}>
-                        <input
-                          type="hidden"
-                          name="inviteId"
-                          value={invite.id}
-                        />
-                        <input type="hidden" name="response" value="accepted" />
-
-                        <button
-                          type="submit"
-                          className="rounded bg-green-500 px-4 py-2 text-sm font-black text-white transition hover:bg-green-400"
-                        >
-                          Accept
-                        </button>
-                      </form>
-
-                      <form action={respondToTeamInvite}>
-                        <input
-                          type="hidden"
-                          name="inviteId"
-                          value={invite.id}
-                        />
-                        <input type="hidden" name="response" value="rejected" />
-
-                        <button
-                          type="submit"
-                          className="rounded border border-red-500/20 px-4 py-2 text-sm font-black text-red-300 transition hover:bg-red-500/10"
-                        >
-                          Reject
-                        </button>
-                      </form>
+                      <span className="inline-flex rounded border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-300">
+                        {invitations.length} invite
+                        {invitations.length === 1 ? "" : "s"}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-            <PanelHeader
-              label="Create Team"
-              title="Start a new team"
-              description="Create a team, invite players, then register for tournaments."
-            />
-
-            {user.isGuildMember ? (
-              <form action={createTeam} className="grid gap-5 p-6">
-                <div className="grid gap-5 md:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span className="font-bold text-gray-200">Team Name</span>
-
-                    <input
-                      name="name"
-                      required
-                      placeholder="Example: RTN Wolves"
-                      className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400"
-                    />
-                  </label>
-
-                  <label className="grid gap-2">
-                    <span className="font-bold text-gray-200">Game</span>
-
-                    <select
-                      name="game"
-                      required
-                      defaultValue=""
-                      className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
-                    >
-                      <option value="" disabled>
-                        Select game
-                      </option>
-
-                      {games.map((game) => (
-                        <option key={game} value={game}>
-                          {game}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="submit"
-                    className="rounded bg-indigo-500 px-5 py-3 font-black text-white transition hover:bg-indigo-400"
-                  >
-                    Create Team
-                  </button>
+                <div className="grid gap-4 lg:justify-items-end">
+                  <div>
+                    <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-gray-500">
+                      Discord ID
+                    </p>
 
-                  <p className="text-sm leading-6 text-gray-400">
-                    You can invite players after creating the team.
-                  </p>
-                </div>
-              </form>
-            ) : (
-              <div className="p-6">
-                <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5">
-                  <p className="font-black text-yellow-300">
-                    RTN Discord required
-                  </p>
-
-                  <p className="mt-2 leading-7 text-gray-300">
-                    You can login to the website, but team creation requires
-                    membership in the RTN Discord server.
-                  </p>
+                    <ProfileIdentityActions discordId={user.discordId} />
+                  </div>
                 </div>
               </div>
-            )}
-          </section>
-        </div>
+            </section>
 
-        <section className="mt-8 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-          <PanelHeader
-            label="My Teams"
-            title="Team overview"
-            description="A compact list of your teams. Open a team to manage members, invites, and review status."
-          />
+            <div className="grid gap-8 lg:grid-cols-2">
+              <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                <PanelHeader
+                  label="Invitations"
+                  title="Team invitations"
+                  description="Accept or reject invitations sent by team leaders."
+                />
 
-          {teams.length === 0 ? (
-            <div className="p-6">
-              <p className="font-bold text-white">No teams yet</p>
-              <p className="mt-2 text-sm leading-6 text-gray-400">
-                Create your first team from the form above.
-              </p>
+                {invitations.length === 0 ? (
+                  <div className="p-6 text-gray-300">
+                    No pending invitations.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-white/10">
+                    {invitations.map((invite) => (
+                      <div
+                        key={invite.id}
+                        className="grid gap-4 px-6 py-5 sm:grid-cols-[1fr_auto] sm:items-center"
+                      >
+                        <div>
+                          <p className="font-black text-white">
+                            {invite.team.name}
+                          </p>
+
+                          <p className="mt-1 text-sm text-gray-400">
+                            {invite.team.game} · invited by{" "}
+                            {invite.invitedBy.username}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <form action={respondToTeamInvite}>
+                            <input
+                              type="hidden"
+                              name="inviteId"
+                              value={invite.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="response"
+                              value="accepted"
+                            />
+
+                            <button
+                              type="submit"
+                              className="rounded bg-green-500 px-4 py-2 text-sm font-black text-white transition hover:bg-green-400"
+                            >
+                              Accept
+                            </button>
+                          </form>
+
+                          <form action={respondToTeamInvite}>
+                            <input
+                              type="hidden"
+                              name="inviteId"
+                              value={invite.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="response"
+                              value="rejected"
+                            />
+
+                            <button
+                              type="submit"
+                              className="rounded border border-red-500/20 px-4 py-2 text-sm font-black text-red-300 transition hover:bg-red-500/10"
+                            >
+                              Reject
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                <PanelHeader
+                  label="Create Team"
+                  title="Start a new team"
+                  description="Create a team, invite players, then register for tournaments."
+                />
+
+                {user.isGuildMember ? (
+                  <form action={createTeam} className="grid gap-5 p-6">
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <label className="grid gap-2">
+                        <span className="font-bold text-gray-200">
+                          Team Name
+                        </span>
+
+                        <input
+                          name="name"
+                          required
+                          placeholder="Example: RTN Wolves"
+                          className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400"
+                        />
+                      </label>
+
+                      <label className="grid gap-2">
+                        <span className="font-bold text-gray-200">Game</span>
+
+                        <select
+                          name="game"
+                          required
+                          defaultValue=""
+                          className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                        >
+                          <option value="" disabled>
+                            Select game
+                          </option>
+
+                          {games.map((game) => (
+                            <option key={game} value={game}>
+                              {game}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="submit"
+                        className="rounded bg-indigo-500 px-5 py-3 font-black text-white transition hover:bg-indigo-400"
+                      >
+                        Create Team
+                      </button>
+
+                      <p className="text-sm leading-6 text-gray-400">
+                        You can invite players after creating the team.
+                      </p>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="p-6">
+                    <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5">
+                      <p className="font-black text-yellow-300">
+                        RTN Discord required
+                      </p>
+
+                      <p className="mt-2 leading-7 text-gray-300">
+                        You can login to the website, but team creation requires
+                        membership in the RTN Discord server.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </section>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] border-collapse text-left">
-                <thead>
-                  <tr className="border-b border-white/10 bg-black/20 text-xs font-black uppercase tracking-[0.12em] text-gray-400">
-                    <th className="w-[30%] px-6 py-4">Team</th>
-                    <th className="w-[18%] px-6 py-4">Game</th>
-                    <th className="w-[12%] px-6 py-4">Members</th>
-                    <th className="w-[14%] px-6 py-4">Role</th>
-                    <th className="w-[14%] px-6 py-4">Status</th>
-                    <th className="w-[12%] px-6 py-4 text-right">Action</th>
-                  </tr>
-                </thead>
 
-                <tbody>
+            <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+              <PanelHeader
+                label="My Teams"
+                title="Team overview"
+                description="Open a team to manage members, invites, and review status."
+              />
+
+              {teams.length === 0 ? (
+                <div className="p-6">
+                  <p className="font-bold text-white">No teams yet</p>
+                  <p className="mt-2 text-sm leading-6 text-gray-400">
+                    Create your first team from the form above.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-3 p-5">
                   {teams.map((team) => {
                     const membership = team.members.find(
                       (member) => member.userId === user.id,
@@ -361,50 +426,121 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                     const isLeader = team.leaderId === user.id;
 
                     return (
-                      <tr
+                      <article
                         key={team.id}
-                        className="border-b border-white/10 transition last:border-b-0 hover:bg-white/[0.035]"
+                        className="grid gap-4 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-[minmax(0,1fr)_140px_90px_120px_100px] md:items-center"
                       >
-                        <td className="px-6 py-5">
-                          <p className="font-black text-white">{team.name}</p>
+                        <div className="min-w-0">
+                          <p className="truncate font-black text-white">
+                            {team.name}
+                          </p>
 
                           {team.rejectionReason && (
                             <p className="mt-1 text-sm text-red-300">
                               Rejected: {team.rejectionReason}
                             </p>
                           )}
-                        </td>
+                        </div>
 
-                        <td className="px-6 py-5 text-gray-300">{team.game}</td>
+                        <p className="text-sm text-gray-300">{team.game}</p>
 
-                        <td className="px-6 py-5 font-bold text-white">
-                          {team.members.length}
-                        </td>
+                        <p className="text-sm font-bold text-white">
+                          {team.members.length} members
+                        </p>
 
-                        <td className="px-6 py-5 text-gray-300">
-                          {isLeader ? "Leader" : membership?.role || "Member"}
-                        </td>
-
-                        <td className="px-6 py-5">
+                        <div>
                           <StatusBadge status={team.status} />
-                        </td>
+                        </div>
 
-                        <td className="px-6 py-5 text-right">
-                          <Link
-                            href={`/profile/teams/${team.id}`}
-                            className="inline-flex rounded bg-indigo-500 px-4 py-2 text-sm font-black text-white transition hover:bg-indigo-400"
-                          >
-                            Manage
-                          </Link>
-                        </td>
-                      </tr>
+                        <Link
+                          href={`/profile/teams/${team.id}`}
+                          className="rounded bg-indigo-500 px-4 py-2 text-center text-sm font-black text-white transition hover:bg-indigo-400"
+                        >
+                          Manage
+                        </Link>
+
+                        <p className="text-sm text-gray-500 md:col-start-2 md:row-start-2">
+                          {isLeader ? "Leader" : membership?.role || "Member"}
+                        </p>
+                      </article>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <aside className="mt-8 xl:absolute xl:right-6 xl:top-10 xl:mt-0 xl:w-[300px]">
+            <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+              <div className="border-b border-white/10 bg-white/[0.03] p-5">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300">
+                  Progress
+                </p>
+
+                <div className="mt-3 rounded-xl border border-green-500/20 bg-green-500/10 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-green-300">
+                    Total points
+                  </p>
+
+                  <p className="mt-2 text-4xl font-black text-white">
+                    {tournamentPoints}
+                  </p>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <ProfileStatCard
+                    label="Results"
+                    value={tournamentResults.length}
+                  />
+                  <ProfileStatCard
+                    label="Best"
+                    value={bestPlacement ? `#${bestPlacement}` : "-"}
+                  />
+                </div>
+              </div>
+
+              {tournamentResults.length === 0 ? (
+                <div className="p-5 text-sm text-gray-400">
+                  No tournament results yet.
+                </div>
+              ) : (
+                <div className="grid gap-3 p-5">
+                  {tournamentResults.slice(0, 6).map((result) => (
+                    <Link
+                      key={result.id}
+                      href={`/tournaments/${result.tournament.id}`}
+                      className="block rounded-xl border border-white/10 bg-black/20 p-4 transition hover:border-cyan-400/30 hover:bg-white/[0.05]"
+                    >
+                      <p className="truncate font-black text-white">
+                        {result.tournament.title}
+                      </p>
+
+                      <p className="mt-1 text-xs text-gray-400">
+                        {result.team.name} · {result.tournament.game}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="inline-flex rounded border border-yellow-500/20 bg-yellow-500/10 px-2 py-1 text-xs font-black text-yellow-300">
+                          #{result.placement}
+                        </span>
+
+                        <span className="inline-flex rounded border border-green-500/20 bg-green-500/10 px-2 py-1 text-xs font-black text-green-300">
+                          {result.points} pts
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {tournamentResults.length > 6 && (
+                    <p className="text-sm text-gray-500">
+                      Showing latest 6 results.
+                    </p>
+                  )}
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
       </section>
 
       <Footer />

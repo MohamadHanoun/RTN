@@ -12,6 +12,10 @@ export async function GET() {
       tournamentsCount,
       announcementsCount,
       usersCount,
+      teamsCount,
+      approvedRegistrationsCount,
+      tournamentResultsCount,
+      tournamentPoints,
     ] = await Promise.all([
       prisma.rule.count({ where: { isActive: true } }),
       prisma.role.count({ where: { isActive: true } }),
@@ -19,45 +23,83 @@ export async function GET() {
       prisma.tournament.count(),
       prisma.announcement.count({ where: { published: true } }),
       prisma.user.count(),
+      prisma.team.count(),
+      prisma.tournamentRegistration.count({
+        where: {
+          status: "approved",
+        },
+      }),
+      prisma.tournamentResult.count(),
+      prisma.tournamentResult.aggregate({
+        _sum: {
+          points: true,
+        },
+      }),
     ]);
+
+    const totalTournamentPoints = tournamentPoints._sum.points || 0;
 
     return NextResponse.json({
       success: true,
       source: "database",
       data: {
         summary: [
-          { label: "Rules", value: String(rulesCount) },
-          { label: "Roles", value: String(rolesCount) },
-          { label: "Staff", value: String(staffCount) },
+          { label: "Players", value: String(usersCount) },
+          { label: "Teams", value: String(teamsCount) },
           { label: "Tournaments", value: String(tournamentsCount) },
+          { label: "Results", value: String(tournamentResultsCount) },
+          { label: "Points", value: String(totalTournamentPoints) },
         ],
         details: [
-          
           {
-            title: "Roles",
-            value: String(rolesCount),
-            description: "Active RTN roles prepared for future Discord sync.",
+            title: "Players",
+            value: String(usersCount),
+            description: "Players who have logged in with Discord.",
           },
           {
-            title: "Staff Members",
-            value: String(staffCount),
-            description: "Staff profiles currently stored in the database.",
+            title: "Teams",
+            value: String(teamsCount),
+            description: "Teams created by RTN players.",
           },
           {
             title: "Tournaments",
             value: String(tournamentsCount),
-            description: "Tournament records prepared for future registration.",
+            description: "Tournament records available on RTN.",
+          },
+          {
+            title: "Tournament Results",
+            value: String(tournamentResultsCount),
+            description: "Final tournament results saved by admins.",
+          },
+          {
+            title: "Tournament Points",
+            value: String(totalTournamentPoints),
+            description: "Total points awarded from tournament results.",
+          },
+          {
+            title: "Approved Registrations",
+            value: String(approvedRegistrationsCount),
+            description: "Tournament registrations approved by admins.",
           },
           {
             title: "Announcements",
             value: String(announcementsCount),
-            description: "Published announcements stored in the database.",
+            description: "Published community announcements.",
           },
           {
-            title: "Registered Users",
-            value: String(usersCount),
-            description:
-              "Users will appear here later after Discord login and XP tracking are connected.",
+            title: "Rules",
+            value: String(rulesCount),
+            description: "Active community rules.",
+          },
+          {
+            title: "Roles",
+            value: String(rolesCount),
+            description: "Active community roles.",
+          },
+          {
+            title: "Staff",
+            value: String(staffCount),
+            description: "Visible staff members.",
           },
         ],
       },
