@@ -39,6 +39,11 @@ function getNumber(formData: FormData, name: string) {
   return value;
 }
 
+function revalidateRolePaths() {
+  revalidatePath("/admin");
+  revalidatePath("/roles");
+}
+
 async function requireAdmin(): Promise<AdminRoleActionResult | null> {
   const session = await auth();
 
@@ -58,6 +63,29 @@ async function requireAdmin(): Promise<AdminRoleActionResult | null> {
   }
 
   return null;
+}
+
+async function normalizeRoleOrders() {
+  const roles = await prisma.role.findMany({
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+  });
+
+  if (roles.length === 0) {
+    return;
+  }
+
+  await prisma.$transaction(
+    roles.map((role, index) =>
+      prisma.role.update({
+        where: {
+          id: role.id,
+        },
+        data: {
+          order: index + 1,
+        },
+      }),
+    ),
+  );
 }
 
 export async function createRoleInline(
@@ -95,24 +123,21 @@ export async function createRoleInline(
     return fail("A role with this name already exists.");
   }
 
-  const lastRole = await prisma.role.findFirst({
-    orderBy: {
-      order: "desc",
-    },
-  });
+  const rolesCount = await prisma.role.count();
 
   await prisma.role.create({
     data: {
       name,
       color,
       description,
-      order: lastRole ? lastRole.order + 1 : 1,
+      order: rolesCount + 1,
       isActive: true,
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/roles");
+  await normalizeRoleOrders();
+
+  revalidateRolePaths();
 
   return success("Role created successfully.");
 }
@@ -175,22 +200,125 @@ export async function updateRoleInline(
     return fail("Another role with this name already exists.");
   }
 
-  await prisma.role.update({
-    where: {
-      id: role.id,
-    },
-    data: {
-      name,
-      color,
-      description,
-      order,
+  await prisma.$transaction(async (tx) => {
+    await tx.role.update({
+      where: {
+        id: role.id,
+      },
+      data: {
+        name,
+        color,
+        description,
+      },
+    });
+
+    const orderedRoles = await tx.role.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    });
+
+    const otherRoleIds = orderedRoles
+      .filter((currentRole) => currentRole.id !== role.id)
+      .map((currentRole) => currentRole.id);
+
+    const targetOrder = Math.min(order, orderedRoles.length);
+    const reorderedRoleIds = [...otherRoleIds];
+
+    reorderedRoleIds.splice(targetOrder - 1, 0, role.id);
+
+    for (const [index, currentRoleId] of reorderedRoleIds.entries()) {
+      await tx.role.update({
+        where: {
+          id: currentRoleId,
+        },
+        data: {
+          order: index + 1,
+        },
+      });
+    }
+  });
+
+  revalidateRolePaths();
+
+  return success("Role updated successfully.");
+}
+
+export async function reorderRolesInline(
+  formData: FormData,
+): Promise<AdminRoleActionResult> {
+  const authError = await requireAdmin();
+
+  if (authError) {
+    return authError;
+  }
+
+  const rawRoleIds = getValue(formData, "orderedRoleIds");
+
+  if (!rawRoleIds) {
+    return fail("Role order is missing.");
+  }
+
+  let orderedRoleIds: string[];
+
+  try {
+    const parsed = JSON.parse(rawRoleIds);
+
+    if (!Array.isArray(parsed)) {
+      return fail("Role order is invalid.");
+    }
+
+    orderedRoleIds = parsed
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+  } catch {
+    return fail("Role order is invalid.");
+  }
+
+  if (orderedRoleIds.length === 0) {
+    return fail("Role order is empty.");
+  }
+
+  const uniqueRoleIds = new Set(orderedRoleIds);
+
+  if (uniqueRoleIds.size !== orderedRoleIds.length) {
+    return fail("Role order contains duplicate roles.");
+  }
+
+  const existingRoles = await prisma.role.findMany({
+    select: {
+      id: true,
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/roles");
+  const existingRoleIds = new Set(existingRoles.map((role) => role.id));
 
-  return success("Role updated successfully.");
+  if (orderedRoleIds.length !== existingRoles.length) {
+    return fail("Role order does not match the current roles list.");
+  }
+
+  const hasInvalidRole = orderedRoleIds.some(
+    (roleId) => !existingRoleIds.has(roleId),
+  );
+
+  if (hasInvalidRole) {
+    return fail("Role order contains an unknown role.");
+  }
+
+  await prisma.$transaction(
+    orderedRoleIds.map((roleId, index) =>
+      prisma.role.update({
+        where: {
+          id: roleId,
+        },
+        data: {
+          order: index + 1,
+        },
+      }),
+    ),
+  );
+
+  revalidateRolePaths();
+
+  return success("Role order updated.");
 }
 
 export async function activateRoleInline(
@@ -240,8 +368,7 @@ async function setRoleActiveStatus(
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/roles");
+  revalidateRolePaths();
 
   return success(isActive ? "Role activated." : "Role deactivated.");
 }
@@ -271,14 +398,30 @@ export async function deleteRoleInline(
     return fail("Role was not found.");
   }
 
-  await prisma.role.delete({
-    where: {
-      id: role.id,
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.role.delete({
+      where: {
+        id: role.id,
+      },
+    });
+
+    const remainingRoles = await tx.role.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    });
+
+    for (const [index, remainingRole] of remainingRoles.entries()) {
+      await tx.role.update({
+        where: {
+          id: remainingRole.id,
+        },
+        data: {
+          order: index + 1,
+        },
+      });
+    }
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/roles");
+  revalidateRolePaths();
 
   return success("Role deleted successfully.");
 }
