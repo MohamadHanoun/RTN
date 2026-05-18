@@ -3,11 +3,11 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-import { basicRules } from "../data/rules";
+import { announcements } from "../data/announcements";
 import { serverRoles } from "../data/roles";
+import { basicRules } from "../data/rules";
 import { staffMembers } from "../data/staff";
 import { tournaments } from "../data/tournaments";
-import { announcements } from "../data/announcements";
 
 dotenv.config({ path: ".env.local" });
 
@@ -30,13 +30,12 @@ const prisma = new PrismaClient({
 async function main() {
   console.log("Start seeding RTN database...");
 
-  // Delete related data first
   await prisma.tournamentRegistration.deleteMany();
+  await prisma.teamInvite.deleteMany();
+  await prisma.teamMember.deleteMany();
   await prisma.team.deleteMany();
-  await prisma.xpLog.deleteMany();
   await prisma.user.deleteMany();
 
-  // Delete content data
   await prisma.rule.deleteMany();
   await prisma.role.deleteMany();
   await prisma.staffMember.deleteMany();
@@ -44,62 +43,92 @@ async function main() {
   await prisma.announcement.deleteMany();
   await prisma.serverSetting.deleteMany();
 
-  // Rules
   await prisma.rule.createMany({
-    data: basicRules.map((rule, index) => ({
+    data: basicRules.map((rule: string, index: number) => ({
       text: rule,
       order: index + 1,
       isActive: true,
     })),
   });
 
-  // Roles
   await prisma.role.createMany({
-    data: serverRoles.map((role, index) => ({
-      name: role.name,
-      color: role.color,
-      description: role.description,
-      order: index + 1,
-      isActive: true,
-    })),
+    data: serverRoles.map(
+      (
+        role: {
+          name: string;
+          color: string;
+          description: string;
+        },
+        index: number,
+      ) => ({
+        name: role.name,
+        color: role.color,
+        description: role.description,
+        order: index + 1,
+        isActive: true,
+      }),
+    ),
   });
 
-  // Staff members
   await prisma.staffMember.createMany({
-    data: staffMembers.map((member, index) => ({
-      name: member.name,
-      role: member.role,
-      status: member.status,
-      order: index + 1,
-      isActive: true,
-    })),
+    data: staffMembers.map(
+      (
+        member: {
+          name: string;
+          role: string;
+          status: string;
+        },
+        index: number,
+      ) => ({
+        name: member.name,
+        role: member.role,
+        status: member.status,
+        order: index + 1,
+        isActive: true,
+      }),
+    ),
   });
 
-  // Tournaments
   await prisma.tournament.createMany({
-    data: tournaments.map((tournament) => ({
-      title: tournament.title,
-      game: tournament.game,
-      description: tournament.description,
-      date: tournament.date,
-      prize: tournament.prize,
-      maxSlots: 16,
-      status: tournament.status,
-    })),
+    data: tournaments.map(
+      (tournament: {
+        title: string;
+        game: string;
+        description: string;
+        date: string;
+        prize: string;
+        status: string;
+      }) => ({
+        title: tournament.title,
+        game: tournament.game,
+        description: tournament.description,
+        date: tournament.date,
+        prize: tournament.prize,
+        maxSlots: 16,
+        teamSize: 5,
+        status: tournament.status,
+        registrationStatus: "open",
+      }),
+    ),
   });
 
-  // Announcements
   await prisma.announcement.createMany({
-    data: announcements.map((announcement) => ({
-      title: announcement.title,
-      category: announcement.category,
-      description: announcement.description,
-      important: announcement.important,
-      published: true,
-    })),
+    data: announcements.map(
+      (announcement: {
+        title: string;
+        category: string;
+        description: string;
+        important: boolean;
+      }) => ({
+        title: announcement.title,
+        category: announcement.category,
+        description: announcement.description,
+        important: announcement.important,
+        published: true,
+      }),
+    ),
   });
 
-  // Server settings
   await prisma.serverSetting.createMany({
     data: [
       {
@@ -116,40 +145,6 @@ async function main() {
         key: "discord_invite_url",
         value: "https://discord.gg/zP8ptXVvKw",
         description: "Main Discord invite link.",
-      },
-    ],
-  });
-
-  // Sample XP users for leaderboard
-  await prisma.user.createMany({
-    data: [
-      {
-        discordId: "test-user-1",
-        username: "Mohamad",
-        role: "Founder",
-        xp: 12450,
-        level: 25,
-      },
-      {
-        discordId: "test-user-2",
-        username: "RTN_Player",
-        role: "Member",
-        xp: 8900,
-        level: 18,
-      },
-      {
-        discordId: "test-user-3",
-        username: "TempleRunner",
-        role: "Tournament Player",
-        xp: 6700,
-        level: 14,
-      },
-      {
-        discordId: "test-user-4",
-        username: "RiftHunter",
-        role: "Member",
-        xp: 4200,
-        level: 9,
       },
     ],
   });

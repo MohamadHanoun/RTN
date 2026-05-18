@@ -12,8 +12,6 @@ model User {
   username  String
   avatar    String?
   role      String  @default("Member")
-  xp        Int     @default(0)
-  level     Int     @default(1)
 
   isGuildMember    Boolean   @default(false)
   lastGuildCheckAt DateTime?
@@ -22,7 +20,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  xpLogs XpLog[]
 
   ownedTeams      Team[]       @relation("TeamLeader")
   teamMemberships TeamMember[]
@@ -31,16 +28,6 @@ model User {
   receivedTeamInvites TeamInvite[] @relation("TeamInviteReceiver")
 
   tournamentRegistrations TournamentRegistration[] @relation("TournamentRegisteredBy")
-}
-
-model XpLog {
-  id        String   @id @default(cuid())
-  userId    String
-  amount    Int
-  reason    String
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Tournament {
