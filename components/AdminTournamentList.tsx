@@ -8,9 +8,10 @@ import {
   setTournamentUpcomingInline,
   updateTournamentInline,
 } from "@/actions/adminTournamentInlineActions";
+import AdminTournamentImageFields from "@/components/AdminTournamentImageFields";
 import InlineAdminTournamentForm from "@/components/InlineAdminTournamentForm";
-import { getTournamentImageUrl } from "@/lib/tournamentImages";
 import { prisma } from "@/lib/prisma";
+import { getTournamentImageUrl } from "@/lib/tournamentImages";
 
 const games = ["Valorant", "League of Legends", "CS2", "Dota2"];
 
@@ -214,46 +215,22 @@ export default async function AdminTournamentList() {
                       value={tournament.registrationStatus}
                     />
 
-                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-                      <label className="grid gap-2">
-                        <FieldLabel>Title</FieldLabel>
-
-                        <input
-                          name="title"
-                          required
-                          defaultValue={tournament.title}
-                          className={inputClass()}
-                        />
-                      </label>
-
-                      <label className="grid gap-2">
-                        <FieldLabel>Game</FieldLabel>
-
-                        <select
-                          name="game"
-                          required
-                          defaultValue={tournament.game}
-                          className={inputClass()}
-                        >
-                          {games.map((game) => (
-                            <option key={game} value={game}>
-                              {game}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-
                     <label className="grid gap-2">
-                      <FieldLabel>Image URL</FieldLabel>
+                      <FieldLabel>Title</FieldLabel>
 
                       <input
-                        name="imageUrl"
-                        defaultValue={tournament.imageUrl || ""}
-                        placeholder="Optional custom image URL"
+                        name="title"
+                        required
+                        defaultValue={tournament.title}
                         className={inputClass()}
                       />
                     </label>
+
+                    <AdminTournamentImageFields
+                      games={games}
+                      defaultGame={tournament.game}
+                      defaultImageUrl={tournament.imageUrl}
+                    />
 
                     <label className="grid gap-2">
                       <FieldLabel>Description</FieldLabel>

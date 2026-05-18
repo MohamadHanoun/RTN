@@ -1,6 +1,7 @@
 "use client";
 
 import { createTournamentInline } from "@/actions/adminTournamentInlineActions";
+import AdminTournamentImageFields from "@/components/AdminTournamentImageFields";
 import InlineAdminTournamentForm from "@/components/InlineAdminTournamentForm";
 
 const games = ["Valorant", "League of Legends", "CS2", "Dota2"];
@@ -57,8 +58,8 @@ export default function AdminTournamentForm() {
           </h2>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-400">
-            Create a new tournament. A game image is used automatically when no
-            custom image URL is provided.
+            Create a new tournament, choose a game, and optionally add a custom
+            image URL.
           </p>
         </div>
 
@@ -69,49 +70,18 @@ export default function AdminTournamentForm() {
           resetOnSuccess
           className="grid gap-4"
         >
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-            <label className="grid gap-2">
-              <FieldLabel>Title</FieldLabel>
-
-              <input
-                name="title"
-                required
-                placeholder="Example: RTN Valorant Cup"
-                className={inputClass()}
-              />
-            </label>
-
-            <label className="grid gap-2">
-              <FieldLabel>Game</FieldLabel>
-
-              <select
-                name="game"
-                required
-                defaultValue=""
-                className={inputClass()}
-              >
-                <option value="" disabled>
-                  Select game
-                </option>
-
-                {games.map((game) => (
-                  <option key={game} value={game}>
-                    {game}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
           <label className="grid gap-2">
-            <FieldLabel>Image URL</FieldLabel>
+            <FieldLabel>Title</FieldLabel>
 
             <input
-              name="imageUrl"
-              placeholder="Optional custom image URL"
+              name="title"
+              required
+              placeholder="Example: RTN Valorant Cup"
               className={inputClass()}
             />
           </label>
+
+          <AdminTournamentImageFields games={games} />
 
           <label className="grid gap-2">
             <FieldLabel>Description</FieldLabel>
