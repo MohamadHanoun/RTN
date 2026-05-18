@@ -26,14 +26,14 @@ function inputClass() {
 
 export default function AdminStaffForm() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-10">
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-        <div className="border-b border-white/10 bg-white/[0.03] px-6 py-5">
-          <p className="text-sm font-black uppercase tracking-[0.14em] text-cyan-300">
+    <section className="mx-auto max-w-7xl px-6 pb-8">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="mb-5">
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
             Staff
           </p>
 
-          <h2 className="mt-2 text-2xl font-black text-white">
+          <h2 className="mt-2 text-3xl font-black text-white">
             Add staff member
           </h2>
 
@@ -42,36 +42,35 @@ export default function AdminStaffForm() {
           </p>
         </div>
 
-        <div className="p-6">
-          <InlineAdminStaffForm
-            action={createStaffInline}
-            buttonLabel="Add staff member"
-            pendingLabel="Adding..."
-            resetOnSuccess
-          >
-            <div className="grid gap-5 md:grid-cols-2">
-              <label className="grid gap-2">
-                <span className="text-sm font-bold text-gray-200">Name</span>
+        <InlineAdminStaffForm
+          action={createStaffInline}
+          buttonLabel="Add staff member"
+          pendingLabel="Adding..."
+          resetOnSuccess
+          className="grid gap-4"
+        >
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px]">
+            <label className="grid gap-2">
+              <span className="text-sm font-bold text-gray-200">Name</span>
 
-                <input
-                  name="name"
-                  required
-                  placeholder="Example: Abu 3Day"
-                  className={inputClass()}
-                />
-              </label>
+              <input
+                name="name"
+                required
+                placeholder="Example: Abu 3Day"
+                className={inputClass()}
+              />
+            </label>
 
-              <label className="grid gap-2">
-                <span className="text-sm font-bold text-gray-200">Role</span>
+            <label className="grid gap-2">
+              <span className="text-sm font-bold text-gray-200">Role</span>
 
-                <input
-                  name="role"
-                  required
-                  placeholder="Example: Tournament Manager"
-                  className={inputClass()}
-                />
-              </label>
-            </div>
+              <input
+                name="role"
+                required
+                placeholder="Example: Tournament Manager"
+                className={inputClass()}
+              />
+            </label>
 
             <label className="grid gap-2">
               <span className="text-sm font-bold text-gray-200">Status</span>
@@ -89,8 +88,8 @@ export default function AdminStaffForm() {
                 ))}
               </select>
             </label>
-          </InlineAdminStaffForm>
-        </div>
+          </div>
+        </InlineAdminStaffForm>
       </div>
     </section>
   );

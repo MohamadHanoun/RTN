@@ -39,6 +39,11 @@ function getNumber(formData: FormData, name: string) {
   return value;
 }
 
+function revalidateStaffPaths() {
+  revalidatePath("/admin");
+  revalidatePath("/staff");
+}
+
 async function requireAdmin(): Promise<AdminStaffActionResult | null> {
   const session = await auth();
 
@@ -58,6 +63,29 @@ async function requireAdmin(): Promise<AdminStaffActionResult | null> {
   }
 
   return null;
+}
+
+async function normalizeStaffOrders() {
+  const staffMembers = await prisma.staffMember.findMany({
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+  });
+
+  if (staffMembers.length === 0) {
+    return;
+  }
+
+  await prisma.$transaction(
+    staffMembers.map((staffMember, index) =>
+      prisma.staffMember.update({
+        where: {
+          id: staffMember.id,
+        },
+        data: {
+          order: index + 1,
+        },
+      }),
+    ),
+  );
 }
 
 export async function createStaffInline(
@@ -81,24 +109,21 @@ export async function createStaffInline(
     return fail("Staff role is required.");
   }
 
-  const lastStaff = await prisma.staffMember.findFirst({
-    orderBy: {
-      order: "desc",
-    },
-  });
+  const staffCount = await prisma.staffMember.count();
 
   await prisma.staffMember.create({
     data: {
       name,
       role,
       status,
-      order: lastStaff ? lastStaff.order + 1 : 1,
+      order: staffCount + 1,
       isActive: true,
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/staff");
+  await normalizeStaffOrders();
+
+  revalidateStaffPaths();
 
   return success("Staff member created successfully.");
 }
@@ -144,22 +169,127 @@ export async function updateStaffInline(
     return fail("Staff member was not found.");
   }
 
-  await prisma.staffMember.update({
-    where: {
-      id: staffMember.id,
-    },
-    data: {
-      name,
-      role,
-      status,
-      order,
+  await prisma.$transaction(async (tx) => {
+    await tx.staffMember.update({
+      where: {
+        id: staffMember.id,
+      },
+      data: {
+        name,
+        role,
+        status,
+      },
+    });
+
+    const orderedStaffMembers = await tx.staffMember.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    });
+
+    const otherStaffIds = orderedStaffMembers
+      .filter((currentStaffMember) => currentStaffMember.id !== staffMember.id)
+      .map((currentStaffMember) => currentStaffMember.id);
+
+    const targetOrder = Math.min(order, orderedStaffMembers.length);
+    const reorderedStaffIds = [...otherStaffIds];
+
+    reorderedStaffIds.splice(targetOrder - 1, 0, staffMember.id);
+
+    for (const [index, currentStaffId] of reorderedStaffIds.entries()) {
+      await tx.staffMember.update({
+        where: {
+          id: currentStaffId,
+        },
+        data: {
+          order: index + 1,
+        },
+      });
+    }
+  });
+
+  revalidateStaffPaths();
+
+  return success("Staff member updated successfully.");
+}
+
+export async function reorderStaffInline(
+  formData: FormData,
+): Promise<AdminStaffActionResult> {
+  const authError = await requireAdmin();
+
+  if (authError) {
+    return authError;
+  }
+
+  const rawStaffIds = getValue(formData, "orderedStaffIds");
+
+  if (!rawStaffIds) {
+    return fail("Staff order is missing.");
+  }
+
+  let orderedStaffIds: string[];
+
+  try {
+    const parsed = JSON.parse(rawStaffIds);
+
+    if (!Array.isArray(parsed)) {
+      return fail("Staff order is invalid.");
+    }
+
+    orderedStaffIds = parsed
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+  } catch {
+    return fail("Staff order is invalid.");
+  }
+
+  if (orderedStaffIds.length === 0) {
+    return fail("Staff order is empty.");
+  }
+
+  const uniqueStaffIds = new Set(orderedStaffIds);
+
+  if (uniqueStaffIds.size !== orderedStaffIds.length) {
+    return fail("Staff order contains duplicate staff members.");
+  }
+
+  const existingStaffMembers = await prisma.staffMember.findMany({
+    select: {
+      id: true,
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/staff");
+  const existingStaffIds = new Set(
+    existingStaffMembers.map((staffMember) => staffMember.id),
+  );
 
-  return success("Staff member updated successfully.");
+  if (orderedStaffIds.length !== existingStaffMembers.length) {
+    return fail("Staff order does not match the current staff list.");
+  }
+
+  const hasInvalidStaffMember = orderedStaffIds.some(
+    (staffId) => !existingStaffIds.has(staffId),
+  );
+
+  if (hasInvalidStaffMember) {
+    return fail("Staff order contains an unknown staff member.");
+  }
+
+  await prisma.$transaction(
+    orderedStaffIds.map((staffId, index) =>
+      prisma.staffMember.update({
+        where: {
+          id: staffId,
+        },
+        data: {
+          order: index + 1,
+        },
+      }),
+    ),
+  );
+
+  revalidateStaffPaths();
+
+  return success("Staff order updated.");
 }
 
 export async function activateStaffInline(
@@ -209,8 +339,7 @@ async function setStaffActiveStatus(
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/staff");
+  revalidateStaffPaths();
 
   return success(
     isActive ? "Staff member activated." : "Staff member deactivated.",
@@ -242,14 +371,33 @@ export async function deleteStaffInline(
     return fail("Staff member was not found.");
   }
 
-  await prisma.staffMember.delete({
-    where: {
-      id: staffMember.id,
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.staffMember.delete({
+      where: {
+        id: staffMember.id,
+      },
+    });
+
+    const remainingStaffMembers = await tx.staffMember.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    });
+
+    for (const [
+      index,
+      remainingStaffMember,
+    ] of remainingStaffMembers.entries()) {
+      await tx.staffMember.update({
+        where: {
+          id: remainingStaffMember.id,
+        },
+        data: {
+          order: index + 1,
+        },
+      });
+    }
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/staff");
+  revalidateStaffPaths();
 
   return success("Staff member deleted successfully.");
 }
