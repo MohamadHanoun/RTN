@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
+const games = ["Valorant", "League of Legends", "CS2", "Dota2"];
+
 export async function GET() {
   try {
     const [
@@ -14,8 +16,9 @@ export async function GET() {
       usersCount,
       teamsCount,
       approvedRegistrationsCount,
-      tournamentResultsCount,
+      tournamentResults,
       tournamentPoints,
+      tournamentsByGame,
     ] = await Promise.all([
       prisma.rule.count({ where: { isActive: true } }),
       prisma.role.count({ where: { isActive: true } }),
@@ -29,15 +32,51 @@ export async function GET() {
           status: "approved",
         },
       }),
-      prisma.tournamentResult.count(),
+      prisma.tournamentResult.findMany({
+        select: {
+          points: true,
+          tournament: {
+            select: {
+              game: true,
+            },
+          },
+        },
+      }),
       prisma.tournamentResult.aggregate({
         _sum: {
           points: true,
         },
       }),
+      prisma.tournament.groupBy({
+        by: ["game"],
+        _count: {
+          id: true,
+        },
+      }),
     ]);
 
     const totalTournamentPoints = tournamentPoints._sum.points || 0;
+
+    const gameBreakdown = games.map((game) => {
+      const gameResults = tournamentResults.filter(
+        (result) => result.tournament.game === game,
+      );
+
+      const gamePoints = gameResults.reduce(
+        (total, result) => total + result.points,
+        0,
+      );
+
+      const gameTournamentCount =
+        tournamentsByGame.find((item) => item.game === game)?._count.id || 0;
+
+      return {
+        game,
+        tournaments: gameTournamentCount,
+        results: gameResults.length,
+        points: gamePoints,
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -47,7 +86,7 @@ export async function GET() {
           { label: "Players", value: String(usersCount) },
           { label: "Teams", value: String(teamsCount) },
           { label: "Tournaments", value: String(tournamentsCount) },
-          { label: "Results", value: String(tournamentResultsCount) },
+          { label: "Results", value: String(tournamentResults.length) },
           { label: "Points", value: String(totalTournamentPoints) },
         ],
         details: [
@@ -68,7 +107,7 @@ export async function GET() {
           },
           {
             title: "Tournament Results",
-            value: String(tournamentResultsCount),
+            value: String(tournamentResults.length),
             description: "Final tournament results saved by admins.",
           },
           {
@@ -102,6 +141,7 @@ export async function GET() {
             description: "Visible staff members.",
           },
         ],
+        gameBreakdown,
       },
     });
   } catch (error) {
