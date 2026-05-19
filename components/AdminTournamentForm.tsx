@@ -7,33 +7,15 @@ import InlineAdminTournamentForm from "@/components/InlineAdminTournamentForm";
 const games = ["Valorant", "League of Legends", "CS2", "Dota2"];
 
 const tournamentStatuses = [
-  {
-    value: "upcoming",
-    label: "Upcoming",
-  },
-  {
-    value: "open",
-    label: "Open",
-  },
-  {
-    value: "closed",
-    label: "Closed",
-  },
-  {
-    value: "cancelled",
-    label: "Cancelled",
-  },
+  { value: "upcoming", label: "Upcoming" },
+  { value: "open", label: "Open" },
+  { value: "closed", label: "Closed" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 const registrationStatuses = [
-  {
-    value: "open",
-    label: "Open",
-  },
-  {
-    value: "closed",
-    label: "Closed",
-  },
+  { value: "open", label: "Open" },
+  { value: "closed", label: "Closed" },
 ];
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -41,15 +23,15 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 function inputClass() {
-  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400";
+  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-violet-400";
 }
 
 export default function AdminTournamentForm() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-8">
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+    <section>
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20">
         <div className="mb-5">
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
             Tournaments
           </p>
 
@@ -76,7 +58,7 @@ export default function AdminTournamentForm() {
             <input
               name="title"
               required
-              placeholder="Example: RTN Valorant Cup"
+              placeholder="Example: Ascendra Valorant Cup"
               className={inputClass()}
             />
           </label>
@@ -144,7 +126,7 @@ export default function AdminTournamentForm() {
             </label>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+          <div className="grid gap-4 lg:grid-cols-2">
             <label className="grid gap-2">
               <FieldLabel>Tournament status</FieldLabel>
 
