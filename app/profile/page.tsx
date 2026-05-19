@@ -48,15 +48,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function PanelHeader({
-  label,
-  title,
-  description,
-}: {
-  label: string;
-  title: string;
-  description: string;
-}) {
+function PanelHeader({ label, title }: { label: string; title: string }) {
   return (
     <div className="border-b border-white/10 bg-white/[0.03] px-6 py-5">
       <p className="text-sm font-black uppercase tracking-[0.16em] text-violet-300">
@@ -64,10 +56,6 @@ function PanelHeader({
       </p>
 
       <h2 className="mt-2 text-2xl font-black text-white">{title}</h2>
-
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-400">
-        {description}
-      </p>
     </div>
   );
 }
@@ -279,11 +267,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           <div className="grid min-w-0 gap-8">
             <div className="grid gap-8 lg:grid-cols-2">
               <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-                <PanelHeader
-                  label="Invitations"
-                  title="Team invitations"
-                  description="Accept or reject invitations sent by team leaders."
-                />
+                <PanelHeader label="Invitations" title="Team invitations" />
 
                 {invitations.length === 0 ? (
                   <div className="p-6 text-gray-300">
@@ -355,11 +339,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               </section>
 
               <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-                <PanelHeader
-                  label="Create team"
-                  title="Start a new team"
-                  description="Create a team, invite players, then register for tournaments."
-                />
+                <PanelHeader label="Create team" title="Start a new team" />
 
                 {user.isGuildMember ? (
                   <form action={createTeam} className="grid gap-5 p-6">
@@ -408,7 +388,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                       </button>
 
                       <p className="text-sm leading-6 text-gray-400">
-                        You can invite players after creating the team.
+                        Invites are managed from the team page.
                       </p>
                     </div>
                   </form>
@@ -420,8 +400,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                       </p>
 
                       <p className="mt-2 leading-7 text-gray-300">
-                        You can login to the website, but team creation requires
-                        membership in the Ascendra Discord server.
+                        Team creation requires Ascendra Discord membership. Please join the Discord server and link your account to create or join teams.
                       </p>
                     </div>
                   </div>
@@ -430,11 +409,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             </div>
 
             <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-              <PanelHeader
-                label="My teams"
-                title="Team overview"
-                description="Open a team to manage members, invites, and review status."
-              />
+              <PanelHeader label="My teams" title="Team overview" />
 
               {teams.length === 0 ? (
                 <div className="p-6">
