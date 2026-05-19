@@ -92,11 +92,20 @@ export default async function AdminPlayersList() {
     orderBy: {
       createdAt: "desc",
     },
-    include: {
+    select: {
+      id: true,
+      username: true,
+      discordId: true,
+      avatar: true,
+      role: true,
+      isGuildMember: true,
+      createdAt: true,
+      lastLoginAt: true,
+      lastGuildCheckAt: true,
       teamMemberships: {
-        include: {
+        select: {
           team: {
-            include: {
+            select: {
               results: {
                 select: {
                   id: true,
@@ -170,8 +179,7 @@ export default async function AdminPlayersList() {
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            View players who logged in with Discord, their Ascendra membership,
-            teams, registrations, and tournament points.
+            Discord accounts, teams, registrations, and tournament points.
           </p>
         </div>
 
@@ -192,13 +200,12 @@ export default async function AdminPlayersList() {
         />
       ) : (
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-          <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.2fr)_140px_140px_140px_140px_120px] xl:gap-5">
+          <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.2fr)_140px_140px_140px_140px] xl:gap-5">
             <span>Player</span>
             <span>Teams</span>
             <span>Regs.</span>
             <span>Results</span>
             <span>Best</span>
-            <span>Action</span>
           </div>
 
           <div className="divide-y divide-white/10">
@@ -207,7 +214,7 @@ export default async function AdminPlayersList() {
                 key={player.id}
                 className="grid gap-4 p-5 transition hover:bg-white/[0.035]"
               >
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_140px_140px_140px_140px_120px] xl:items-center xl:gap-5">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_140px_140px_140px_140px] xl:items-center xl:gap-5">
                   <div className="flex min-w-0 items-center gap-4">
                     {player.avatar ? (
                       <Image
@@ -238,7 +245,7 @@ export default async function AdminPlayersList() {
                       </div>
 
                       <p className="mt-2 text-sm text-gray-400">
-                        Joined Ascendra platform {formatDate(player.createdAt)}
+                        Joined {formatDate(player.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -258,12 +265,6 @@ export default async function AdminPlayersList() {
                       player.bestPlacement ? `#${player.bestPlacement}` : "-"
                     }
                   />
-
-                  <details className="group">
-                    <summary className="cursor-pointer list-none rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-center text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white">
-                      Details
-                    </summary>
-                  </details>
                 </div>
 
                 <details className="rounded-2xl border border-white/10 bg-black/25">
@@ -290,7 +291,7 @@ export default async function AdminPlayersList() {
 
                     <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                       <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
-                        Activity and points
+                        Activity
                       </p>
 
                       <div className="mt-4 grid gap-3 text-sm text-gray-300">
