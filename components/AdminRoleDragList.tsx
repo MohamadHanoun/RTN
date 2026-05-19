@@ -26,7 +26,7 @@ function StatusBadge({ active }: { active: boolean }) {
     <span
       className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-black ${
         active
-          ? "border-green-500/20 bg-green-500/10 text-green-300"
+          ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
           : "border-white/10 bg-white/5 text-gray-300"
       }`}
     >
@@ -36,7 +36,7 @@ function StatusBadge({ active }: { active: boolean }) {
 }
 
 function inputClass() {
-  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400";
+  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-violet-400";
 }
 
 function moveItem(items: RoleItem[], fromIndex: number, toIndex: number) {
@@ -60,7 +60,7 @@ function normalizeColor(color: string) {
     return color;
   }
 
-  return "#22d3ee";
+  return "#8b5cf6";
 }
 
 export default function AdminRoleDragList({
@@ -147,7 +147,7 @@ export default function AdminRoleDragList({
 
   if (roles.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-gray-300">
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-gray-300 shadow-2xl shadow-black/20">
         No roles found.
       </div>
     );
@@ -155,7 +155,7 @@ export default function AdminRoleDragList({
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-5 py-4 shadow-2xl shadow-black/20">
         <div>
           <p className="text-sm font-black text-white">Drag to reorder</p>
           <p className="mt-1 text-sm text-gray-400">
@@ -165,10 +165,10 @@ export default function AdminRoleDragList({
 
         {notice && (
           <div
-            className={`rounded-xl border px-4 py-3 text-sm font-bold ${
+            className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
               notice.ok
-                ? "border-green-500/20 bg-green-500/10 text-green-300"
-                : "border-red-500/20 bg-red-500/10 text-red-300"
+                ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+                : "border-red-400/25 bg-red-500/10 text-red-300"
             }`}
           >
             {notice.message}
@@ -176,7 +176,7 @@ export default function AdminRoleDragList({
         )}
 
         {pending && (
-          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-300">
+          <div className="rounded-2xl border border-violet-400/25 bg-violet-500/10 px-4 py-3 text-sm font-bold text-violet-200">
             Saving order...
           </div>
         )}
@@ -199,14 +199,14 @@ export default function AdminRoleDragList({
               }}
               onDrop={() => handleDrop(role.id)}
               onDragEnd={handleDragEnd}
-              className={`rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition ${
+              className={`rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20 transition ${
                 isDragging ? "opacity-50" : ""
-              } ${isDragTarget ? "bg-cyan-400/10" : "hover:bg-white/[0.06]"}`}
+              } ${isDragTarget ? "bg-violet-500/10" : "hover:bg-white/[0.06]"}`}
             >
               <div className="grid gap-5 xl:grid-cols-[72px_minmax(0,1fr)_210px] xl:items-start">
                 <div className="flex items-center justify-between gap-3 xl:grid xl:gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-lg font-black text-cyan-200">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-violet-400/25 bg-violet-500/10 text-lg font-black text-violet-200">
                       {position}
                     </span>
 
@@ -224,7 +224,7 @@ export default function AdminRoleDragList({
                   <button
                     type="button"
                     aria-label="Drag role"
-                    className="grid h-10 w-10 cursor-grab place-items-center rounded-xl border border-white/10 bg-black/20 text-lg font-black text-gray-300 transition hover:border-cyan-400/40 hover:text-cyan-200 active:cursor-grabbing"
+                    className="grid h-10 w-10 cursor-grab place-items-center rounded-xl border border-white/10 bg-black/25 text-lg font-black text-gray-300 transition hover:border-violet-400/40 hover:text-violet-200 active:cursor-grabbing"
                   >
                     ≡
                   </button>
@@ -263,7 +263,7 @@ export default function AdminRoleDragList({
                         type="color"
                         required
                         defaultValue={normalizeColor(role.color)}
-                        className="h-[50px] w-full cursor-pointer rounded-xl border border-white/10 bg-black/30 p-2 outline-none transition focus:border-cyan-400"
+                        className="h-[50px] w-full cursor-pointer rounded-xl border border-white/10 bg-black/30 p-2 outline-none transition focus:border-violet-400"
                       />
                     </label>
                   </div>
@@ -282,9 +282,9 @@ export default function AdminRoleDragList({
                   </label>
                 </InlineAdminRoleForm>
 
-                <div className="grid content-start gap-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="grid content-start gap-3 rounded-2xl border border-white/10 bg-black/25 p-4">
                   <div>
-                    <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                    <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                       Status
                     </p>
 
