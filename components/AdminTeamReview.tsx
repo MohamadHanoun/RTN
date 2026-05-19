@@ -50,7 +50,7 @@ function RegistrationBadge({ status }: { status: string }) {
   const normalizedStatus = status.toLowerCase();
 
   const styles: Record<string, string> = {
-    registered: "border-cyan-400/25 bg-cyan-500/10 text-cyan-300",
+    registered: "border-violet-400/25 bg-violet-500/10 text-violet-200",
     approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
     rejected: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
@@ -91,7 +91,13 @@ function MiniStat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string | number }) {
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string | number;
+  value: string | number;
+}) {
   return (
     <p>
       {label}: <span className="break-all font-black text-white">{value}</span>
@@ -115,27 +121,61 @@ export default async function AdminTeamReview({
   error,
 }: AdminTeamReviewProps) {
   const teams = await prisma.team.findMany({
-    include: {
-      leader: true,
+    select: {
+      id: true,
+      name: true,
+      game: true,
+      status: true,
+      leaderId: true,
+      createdAt: true,
+      leader: {
+        select: {
+          username: true,
+          discordId: true,
+        },
+      },
       members: {
-        include: {
-          user: true,
+        select: {
+          id: true,
+          userId: true,
+          joinedAt: true,
+          user: {
+            select: {
+              username: true,
+              discordId: true,
+            },
+          },
         },
         orderBy: {
           joinedAt: "asc",
         },
       },
       registrations: {
-        include: {
-          tournament: true,
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          tournament: {
+            select: {
+              title: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
         },
       },
       results: {
-        include: {
-          tournament: true,
+        select: {
+          id: true,
+          placement: true,
+          points: true,
+          awardedAt: true,
+          tournament: {
+            select: {
+              title: true,
+            },
+          },
         },
         orderBy: [
           {
@@ -203,8 +243,7 @@ export default async function AdminTeamReview({
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            View teams, leaders, players, registrations, tournament results, and
-            points.
+            Teams, players, registrations, and tournament results.
           </p>
         </div>
 
@@ -223,13 +262,12 @@ export default async function AdminTeamReview({
         </section>
       ) : (
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-          <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.1fr)_140px_140px_140px_140px_120px] xl:gap-5">
+          <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.1fr)_140px_140px_140px_140px] xl:gap-5">
             <span>Team</span>
             <span>Players</span>
             <span>Regs.</span>
             <span>Results</span>
             <span>Best</span>
-            <span>Action</span>
           </div>
 
           <div className="divide-y divide-white/10">
@@ -238,7 +276,7 @@ export default async function AdminTeamReview({
                 key={team.id}
                 className="grid gap-4 p-5 transition hover:bg-white/[0.035]"
               >
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_140px_140px_140px_140px_120px] xl:items-center xl:gap-5">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_140px_140px_140px_140px] xl:items-center xl:gap-5">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="truncate text-2xl font-black text-white">
@@ -271,12 +309,6 @@ export default async function AdminTeamReview({
                     label="Best"
                     value={team.bestPlacement ? `#${team.bestPlacement}` : "-"}
                   />
-
-                  <details className="group">
-                    <summary className="cursor-pointer list-none rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-center text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white">
-                      Details
-                    </summary>
-                  </details>
                 </div>
 
                 <details className="rounded-2xl border border-white/10 bg-black/25">
@@ -423,8 +455,7 @@ export default async function AdminTeamReview({
                         </p>
 
                         <p className="mt-2 text-sm leading-6 text-gray-400">
-                          Delete this team, its members, invitations,
-                          registrations, and tournament results.
+                          Delete this team and related records.
                         </p>
 
                         <div className="mt-3">
