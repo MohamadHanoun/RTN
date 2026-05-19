@@ -8,16 +8,25 @@ export default function ProfileNotice({ message, error }: ProfileNoticeProps) {
     return null;
   }
 
+  const isError = Boolean(error);
+
   return (
     <div
-      className={`mb-8 rounded-3xl border p-5 ${
-        error
-          ? "border-red-500/20 bg-red-500/10 text-red-200"
-          : "border-green-500/20 bg-green-500/10 text-green-200"
+      className={`mb-8 rounded-3xl border p-5 shadow-2xl shadow-black/20 ${
+        isError
+          ? "border-red-400/25 bg-red-500/10 text-red-200"
+          : "border-emerald-400/25 bg-emerald-500/10 text-emerald-200"
       }`}
     >
-      <p className="font-bold">{error ? "Action failed" : "Success"}</p>
-      <p className="mt-1 text-sm leading-6 text-gray-300">{error || message}</p>
+      <p
+        className={`text-sm font-black uppercase tracking-[0.16em] ${
+          isError ? "text-red-300" : "text-emerald-300"
+        }`}
+      >
+        {isError ? "Action failed" : "Success"}
+      </p>
+
+      <p className="mt-2 text-sm leading-6 text-gray-300">{error || message}</p>
     </div>
   );
 }
