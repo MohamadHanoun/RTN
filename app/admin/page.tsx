@@ -20,7 +20,6 @@ import AdminTournamentList from "@/components/AdminTournamentList";
 import { DiscordLoginButton, LogoutButton } from "@/components/AuthButtons";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import PageHeader from "@/components/PageHeader";
 import { adminModules } from "@/data/admin";
 import { prisma } from "@/lib/prisma";
 
@@ -28,8 +27,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Admin",
-  description: "Protected RTN admin dashboard.",
+  title: "Admin | Ascendra",
+  description: "Protected Ascendra admin dashboard.",
 };
 
 type AdminPageProps = {
@@ -116,13 +115,13 @@ async function getAdminOverview() {
       label: "Tournaments",
       value: String(tournamentsCount),
       description:
-        "Tournament records prepared for RTN events and team registrations.",
+        "Tournament records prepared for Ascendra events and team registrations.",
     },
     {
       label: "Players",
       value: String(usersCount),
       description:
-        "Players who logged in to RTN using Discord and have a profile record.",
+        "Players who logged in to Ascendra using Discord and have a profile record.",
     },
     {
       label: "Teams",
@@ -139,7 +138,8 @@ async function getAdminOverview() {
     {
       label: "Tournament Points",
       value: String(totalTournamentPoints),
-      description: "Total points awarded from official RTN tournament results.",
+      description:
+        "Total points awarded from official Ascendra tournament results.",
     },
     {
       label: "Pending Registrations",
@@ -159,13 +159,73 @@ function ModuleStatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+    <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
         {label}
       </p>
 
       <p className="mt-1 text-lg font-black text-white">{value}</p>
     </div>
+  );
+}
+
+function AdminAccessShell({
+  tone,
+  label,
+  title,
+  description,
+  children,
+}: {
+  tone: "violet" | "red";
+  label: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  const labelColor = tone === "red" ? "text-red-300" : "text-violet-300";
+
+  return (
+    <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
+
+      <div className="relative z-10">
+        <Navbar />
+
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(7,8,17,0.98),rgba(7,8,17,0.82),rgba(7,8,17,0.98)),url('https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=2200&q=80')] bg-cover bg-center opacity-70" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
+
+          <div className="relative z-10 mx-auto flex max-w-[900px] flex-col items-center px-6 py-28 text-center lg:px-10">
+            <p
+              className={`mb-4 text-sm font-black uppercase tracking-[0.3em] ${labelColor}`}
+            >
+              {label}
+            </p>
+
+            <h1 className="mb-6 text-5xl font-black uppercase leading-[1.02] tracking-tight md:text-7xl">
+              {title}
+            </h1>
+
+            <p className="mb-8 max-w-xl leading-8 text-gray-300">
+              {description}
+            </p>
+
+            {children}
+          </div>
+
+          <svg
+            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
+            viewBox="0 0 1440 120"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+          </svg>
+        </section>
+
+        <Footer />
+      </div>
+    </main>
   );
 }
 
@@ -176,63 +236,79 @@ function renderAdminTab(
   error?: string,
 ) {
   if (activeTab === "overview") {
-    return <AdminOverview items={overviewItems} />;
+    return (
+      <section className="mx-auto max-w-[1440px] px-6 pb-16 lg:px-10">
+        <AdminOverview items={overviewItems} />
+      </section>
+    );
   }
 
   if (activeTab === "announcements") {
     return (
-      <>
+      <section className="mx-auto grid max-w-[1440px] gap-8 px-6 pb-16 lg:px-10">
         <AdminAnnouncementForm />
         <AdminAnnouncementList />
-      </>
+      </section>
     );
   }
 
   if (activeTab === "tournaments") {
     return (
-      <>
+      <section className="mx-auto grid max-w-[1440px] gap-8 px-6 pb-16 lg:px-10">
         <AdminTournamentForm />
         <AdminTournamentList />
-      </>
+      </section>
     );
   }
 
   if (activeTab === "registrations") {
-    return <AdminRegistrationList message={message} error={error} />;
+    return (
+      <section className="mx-auto max-w-[1440px] px-6 pb-16 lg:px-10">
+        <AdminRegistrationList message={message} error={error} />
+      </section>
+    );
   }
 
   if (activeTab === "teams") {
-    return <AdminTeamReview message={message} error={error} />;
+    return (
+      <section className="mx-auto max-w-[1440px] px-6 pb-16 lg:px-10">
+        <AdminTeamReview message={message} error={error} />
+      </section>
+    );
   }
 
   if (activeTab === "players") {
-    return <AdminPlayersList />;
+    return (
+      <section className="mx-auto max-w-[1440px] px-6 pb-16 lg:px-10">
+        <AdminPlayersList />
+      </section>
+    );
   }
 
   if (activeTab === "rules") {
     return (
-      <>
+      <section className="mx-auto grid max-w-[1440px] gap-8 px-6 pb-16 lg:px-10">
         <AdminRuleForm />
         <AdminRuleList />
-      </>
+      </section>
     );
   }
 
   if (activeTab === "roles") {
     return (
-      <>
+      <section className="mx-auto grid max-w-[1440px] gap-8 px-6 pb-16 lg:px-10">
         <AdminRoleForm />
         <AdminRoleList />
-      </>
+      </section>
     );
   }
 
   if (activeTab === "staff") {
     return (
-      <>
+      <section className="mx-auto grid max-w-[1440px] gap-8 px-6 pb-16 lg:px-10">
         <AdminStaffForm />
         <AdminStaffList />
-      </>
+      </section>
     );
   }
 
@@ -245,17 +321,18 @@ function renderAdminTab(
   ).length;
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-16">
+    <section className="mx-auto grid max-w-[1440px] gap-6 px-6 pb-16 lg:px-10">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
             Modules
           </p>
 
           <h2 className="mt-2 text-3xl font-black text-white">Admin modules</h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            View available RTN admin tools currently connected to the platform.
+            View available Ascendra admin tools currently connected to the
+            platform.
           </p>
         </div>
 
@@ -291,55 +368,27 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   if (!session?.user) {
     return (
-      <main className="min-h-screen bg-[#0b0f1a] text-white">
-        <Navbar />
-
-        <section className="mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-indigo-400">
-            RTN Admin Login
-          </p>
-
-          <h1 className="mb-6 text-5xl font-black md:text-7xl">
-            Admin access required.
-          </h1>
-
-          <p className="mb-8 max-w-xl leading-8 text-gray-300">
-            This page is protected. Login with Discord to continue to the RTN
-            admin panel.
-          </p>
-
-          <DiscordLoginButton />
-        </section>
-
-        <Footer />
-      </main>
+      <AdminAccessShell
+        tone="violet"
+        label="Ascendra admin login"
+        title="Admin access required."
+        description="This page is protected. Login with Discord to continue to the Ascendra admin panel."
+      >
+        <DiscordLoginButton />
+      </AdminAccessShell>
     );
   }
 
   if (!session.user.isAdmin) {
     return (
-      <main className="min-h-screen bg-[#0b0f1a] text-white">
-        <Navbar />
-
-        <section className="mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-red-400">
-            Access Denied
-          </p>
-
-          <h1 className="mb-6 text-5xl font-black md:text-7xl">
-            You are not an RTN admin.
-          </h1>
-
-          <p className="mb-8 max-w-xl leading-8 text-gray-300">
-            You are logged in as {session.user.name}, but this Discord account
-            does not have admin access to the RTN admin panel.
-          </p>
-
-          <LogoutButton />
-        </section>
-
-        <Footer />
-      </main>
+      <AdminAccessShell
+        tone="red"
+        label="Access denied"
+        title="You are not an Ascendra admin."
+        description={`You are logged in as ${session.user.name}, but this Discord account does not have admin access to the Ascendra admin panel.`}
+      >
+        <LogoutButton />
+      </AdminAccessShell>
     );
   }
 
@@ -348,50 +397,80 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     activeTab !== "teams" && activeTab !== "registrations";
 
   return (
-    <main className="min-h-screen bg-[#0b0f1a] text-white">
-      <Navbar />
+    <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
 
-      <PageHeader
-        label="RTN Admin Panel"
-        title="Manage the RTN community from one place."
-        description="A protected dashboard for managing announcements, tournaments, registrations, teams, players, rules, roles, staff, and RTN community tools."
-      />
+      <div className="relative z-10">
+        <Navbar />
 
-      <section className="mx-auto max-w-7xl px-6 pb-6">
-        <div className="rounded-2xl border border-green-500/20 bg-green-500/10 px-5 py-4">
-          <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-green-300">
-                Admin session
-              </p>
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(7,8,17,0.98),rgba(7,8,17,0.82),rgba(7,8,17,0.98)),url('https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=2200&q=80')] bg-cover bg-center opacity-70" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
 
-              <h2 className="mt-1 text-xl font-black text-white">
-                Logged in as RTN Admin
-              </h2>
-            </div>
+          <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
+            <p className="mb-5 text-sm font-black uppercase tracking-[0.22em] text-violet-300">
+              Ascendra admin panel
+            </p>
 
-            <div className="rounded-xl border border-green-500/20 bg-black/20 px-4 py-3">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                Current admin
-              </p>
+            <h1 className="max-w-5xl text-5xl font-black uppercase leading-[1.02] tracking-tight text-white md:text-7xl">
+              Manage the community from one place.
+            </h1>
 
-              <p className="mt-1 text-sm font-black text-white">
-                {session.user.name}
-              </p>
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-gray-300">
+              A protected dashboard for managing announcements, tournaments,
+              registrations, teams, players, rules, roles, staff, and Ascendra
+              community tools.
+            </p>
+          </div>
+
+          <svg
+            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
+            viewBox="0 0 1440 120"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+          </svg>
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-6 py-8 lg:px-10">
+          <div className="rounded-3xl border border-emerald-400/25 bg-emerald-500/10 px-5 py-4 shadow-2xl shadow-black/20">
+            <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">
+                  Admin session
+                </p>
+
+                <h2 className="mt-1 text-xl font-black text-white">
+                  Logged in as Ascendra Admin
+                </h2>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-400/25 bg-black/25 px-4 py-3">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
+                  Current admin
+                </p>
+
+                <p className="mt-1 text-sm font-black text-white">
+                  {session.user.name}
+                </p>
+              </div>
             </div>
           </div>
+        </section>
+
+        <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
+          <AdminTabNavigation activeTab={activeTab} />
         </div>
-      </section>
 
-      <AdminTabNavigation activeTab={activeTab} />
+        {shouldShowGlobalToast && (
+          <AdminToast message={params.message} type={toastType} />
+        )}
 
-      {shouldShowGlobalToast && (
-        <AdminToast message={params.message} type={toastType} />
-      )}
+        {renderAdminTab(activeTab, overviewItems, params.message, params.error)}
 
-      {renderAdminTab(activeTab, overviewItems, params.message, params.error)}
-
-      <Footer />
+        <Footer />
+      </div>
     </main>
   );
 }

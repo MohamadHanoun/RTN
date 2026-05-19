@@ -10,11 +10,11 @@ type AdminOverviewProps = {
 
 function getAccentClass(index: number) {
   const accents = [
-    "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
-    "border-indigo-500/20 bg-indigo-500/10 text-indigo-300",
-    "border-green-500/20 bg-green-500/10 text-green-300",
-    "border-yellow-500/20 bg-yellow-500/10 text-yellow-300",
-    "border-red-500/20 bg-red-500/10 text-red-300",
+    "border-violet-400/25 bg-violet-500/10 text-violet-200",
+    "border-cyan-400/25 bg-cyan-500/10 text-cyan-300",
+    "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
+    "border-yellow-400/25 bg-yellow-500/10 text-yellow-300",
+    "border-red-400/25 bg-red-500/10 text-red-300",
   ];
 
   return accents[index % accents.length];
@@ -22,9 +22,9 @@ function getAccentClass(index: number) {
 
 function getPanelClass(index: number) {
   const panels = [
+    "hover:border-violet-400/30",
     "hover:border-cyan-400/30",
-    "hover:border-indigo-400/30",
-    "hover:border-green-400/30",
+    "hover:border-emerald-400/30",
     "hover:border-yellow-400/30",
     "hover:border-red-400/30",
   ];
@@ -37,10 +37,10 @@ export default function AdminOverview({ items }: AdminOverviewProps) {
   const secondaryItems = items.slice(3);
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-16">
+    <section className="grid gap-6">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
             Overview
           </p>
 
@@ -49,13 +49,13 @@ export default function AdminOverview({ items }: AdminOverviewProps) {
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            A quick summary of RTN content, tournaments, teams, registrations,
-            and player activity.
+            A quick summary of Ascendra content, tournaments, teams,
+            registrations, and player activity.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] px-5 py-4 shadow-2xl shadow-black/20">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
             Overview cards
           </p>
 
@@ -67,7 +67,7 @@ export default function AdminOverview({ items }: AdminOverviewProps) {
         {mainItems.map((item, index) => (
           <article
             key={item.label}
-            className={`rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition hover:bg-white/[0.06] ${getPanelClass(
+            className={`rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:bg-white/[0.06] ${getPanelClass(
               index,
             )}`}
           >
@@ -96,7 +96,7 @@ export default function AdminOverview({ items }: AdminOverviewProps) {
             return (
               <article
                 key={item.label}
-                className={`rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.06] ${getPanelClass(
+                className={`rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:bg-white/[0.06] ${getPanelClass(
                   itemIndex,
                 )}`}
               >
