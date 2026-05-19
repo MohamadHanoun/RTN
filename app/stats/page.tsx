@@ -1,6 +1,5 @@
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import PageHeader from "@/components/PageHeader";
 import StatsDetailCard from "@/components/StatsDetailCard";
 import { prisma } from "@/lib/prisma";
 import { getGameImageUrl } from "@/lib/tournamentImages";
@@ -21,15 +20,15 @@ function GameStatRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3 ${
+      className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 ${
         variant === "points"
-          ? "border-green-500/20 bg-green-500/10"
+          ? "border-emerald-400/25 bg-emerald-500/10"
           : "border-white/10 bg-black/25"
       }`}
     >
       <p
-        className={`text-xs font-black uppercase tracking-[0.12em] ${
-          variant === "points" ? "text-green-300" : "text-gray-500"
+        className={`text-xs font-black uppercase tracking-[0.14em] ${
+          variant === "points" ? "text-emerald-300" : "text-gray-500"
         }`}
       >
         {label}
@@ -52,18 +51,18 @@ function GameStatsCard({
   points: number;
 }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] transition hover:border-cyan-400/30 hover:bg-white/[0.06]">
+    <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06]">
       <div
         className="min-h-40 bg-cover bg-center"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(11,15,26,0.08), rgba(11,15,26,0.86)), url("${getGameImageUrl(
+          backgroundImage: `linear-gradient(to bottom, rgba(7,8,17,0.08), rgba(7,8,17,0.88)), url("${getGameImageUrl(
             game,
           )}")`,
         }}
       />
 
       <div className="p-5">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
           Game stats
         </p>
 
@@ -158,12 +157,12 @@ async function getStatsData() {
     {
       title: "Teams",
       value: String(teamsCount),
-      description: "Teams created by RTN players.",
+      description: "Teams created by Ascendra players.",
     },
     {
       title: "Tournaments",
       value: String(tournamentsCount),
-      description: "Tournament records available on RTN.",
+      description: "Tournament records available on Ascendra.",
     },
     {
       title: "Tournament Results",
@@ -212,58 +211,85 @@ export default async function StatsPage() {
   const { overviewStats, gameStats } = await getStatsData();
 
   return (
-    <main className="min-h-screen bg-[#0b0f1a] text-white">
-      <Navbar />
+    <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
 
-      <PageHeader
-        label="RTN Stats"
-        title="Community statistics."
-        description="Current RTN numbers for players, teams, tournaments, tournament results, points, and game activity."
-      />
+      <div className="relative z-10">
+        <Navbar />
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-6 pb-24">
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-          {overviewStats.map((item) => (
-            <StatsDetailCard
-              key={item.title}
-              title={item.title}
-              value={item.value}
-              description={item.description}
-            />
-          ))}
-        </div>
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(7,8,17,0.98),rgba(7,8,17,0.82),rgba(7,8,17,0.98)),url('https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=2200&q=80')] bg-cover bg-center opacity-70" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
 
-        <section className="grid gap-5">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
-              Game breakdown
+          <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
+            <p className="mb-5 text-sm font-black uppercase tracking-[0.22em] text-violet-300">
+              Ascendra stats
             </p>
 
-            <h2 className="mt-2 text-3xl font-black text-white">
-              Stats by game
-            </h2>
+            <h1 className="max-w-5xl text-5xl font-black uppercase leading-[1.02] tracking-tight text-white md:text-7xl">
+              Community statistics.
+            </h1>
 
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-              Tournament activity grouped by game, including saved results and
-              awarded points.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-300">
+              Current Ascendra numbers for players, teams, tournaments, results,
+              points, and game activity.
             </p>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {gameStats.map((item) => (
-              <GameStatsCard
-                key={item.game}
-                game={item.game}
-                tournaments={item.tournaments}
-                results={item.results}
-                points={item.points}
+          <svg
+            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
+            viewBox="0 0 1440 120"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+          </svg>
+        </section>
+
+        <section className="mx-auto grid max-w-[1440px] gap-10 px-6 py-12 lg:px-10">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+            {overviewStats.map((item) => (
+              <StatsDetailCard
+                key={item.title}
+                title={item.title}
+                value={item.value}
+                description={item.description}
               />
             ))}
           </div>
-        </section>
-      </section>
 
-      <Footer />
+          <section className="grid gap-5">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+                Game breakdown
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black text-white">
+                Stats by game
+              </h2>
+
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
+                Tournament activity grouped by game, including saved results and
+                awarded points.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {gameStats.map((item) => (
+                <GameStatsCard
+                  key={item.game}
+                  game={item.game}
+                  tournaments={item.tournaments}
+                  results={item.results}
+                  points={item.points}
+                />
+              ))}
+            </div>
+          </section>
+        </section>
+
+        <Footer />
+      </div>
     </main>
   );
 }
