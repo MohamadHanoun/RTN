@@ -2,16 +2,16 @@ import { createRuleInline } from "@/actions/adminRuleInlineActions";
 import InlineAdminRuleForm from "@/components/InlineAdminRuleForm";
 
 function inputClass() {
-  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400";
+  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-violet-400";
 }
 
 export default function AdminRuleForm() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-8">
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+    <section>
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20">
         <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
               Rules
             </p>
 
