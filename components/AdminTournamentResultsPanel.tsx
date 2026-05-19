@@ -31,15 +31,67 @@ type AdminTournamentResultsPanelProps = {
   results: TournamentResultItem[];
 };
 
-function PointsPresetCard({ label, value }: { label: string; value: string }) {
+function SummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
+    <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
       <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
         {label}
       </p>
 
       <p className="mt-1 text-lg font-black text-white">{value}</p>
     </div>
+  );
+}
+
+function PointsPresetCard({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border px-4 py-3 ${
+        highlight
+          ? "border-green-500/20 bg-green-500/10"
+          : "border-white/10 bg-black/20"
+      }`}
+    >
+      <p
+        className={`text-xs font-black uppercase tracking-[0.14em] ${
+          highlight ? "text-green-300" : "text-gray-500"
+        }`}
+      >
+        {label}
+      </p>
+
+      <p className="mt-1 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function PlacementBadge({ placement }: { placement: number }) {
+  const isTopThree = placement <= 3;
+
+  return (
+    <span
+      className={`grid h-11 w-11 place-items-center rounded-xl border text-lg font-black ${
+        isTopThree
+          ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-300"
+          : "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+      }`}
+    >
+      #{placement}
+    </span>
   );
 }
 
@@ -53,89 +105,139 @@ export default function AdminTournamentResultsPanel({
     ["registered", "approved"].includes(registration.status),
   );
 
+  const totalPoints = results.reduce(
+    (total, result) => total + result.points,
+    0,
+  );
+
+  const bestPlacement =
+    results.length > 0
+      ? Math.min(...results.map((result) => result.placement))
+      : null;
+
   return (
-    <section className="rounded-xl border border-white/10 bg-black/20 p-5">
-      <div className="grid gap-5">
-        <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300">
-              Tournament results
-            </p>
+    <section className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+      <div className="border-b border-white/10 bg-white/[0.03] px-5 py-5">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
+          Results
+        </p>
 
-            <h4 className="mt-2 text-xl font-black text-white">
-              Award tournament points
-            </h4>
+        <h2 className="mt-2 text-2xl font-black text-white">
+          Tournament points
+        </h2>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-              Add or update final team results. Every player in the selected
-              team receives the same tournament points.
-            </p>
-          </div>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-400">
+          Add final standings and award points to every player in the selected
+          team.
+        </p>
+      </div>
 
-          <div className="grid grid-cols-4 gap-2 xl:w-[420px]">
-            <PointsPresetCard label="1st" value="10 pts" />
-            <PointsPresetCard label="2nd" value="7 pts" />
-            <PointsPresetCard label="3rd" value="5 pts" />
-            <PointsPresetCard label="Play" value="1 pt" />
-          </div>
+      <div className="grid gap-5 p-5">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <SummaryCard
+            label="Eligible teams"
+            value={eligibleRegistrations.length}
+          />
+          <SummaryCard label="Saved results" value={results.length} />
+          <SummaryCard label="Awarded points" value={totalPoints} />
         </div>
 
-        {eligibleRegistrations.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-gray-400">
-            No eligible teams yet. Register or approve teams before adding
-            results.
+        <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                Points presets
+              </p>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Use the buttons in the form to fill placement and points
+                quickly.
+              </p>
+            </div>
+
+            <p className="text-sm font-black text-yellow-300">
+              Best: {bestPlacement ? `#${bestPlacement}` : "-"}
+            </p>
           </div>
-        ) : (
-          <AdminTournamentResultForm
-            tournamentId={tournamentId}
-            registrations={eligibleRegistrations}
-          />
-        )}
 
-        {results.length > 0 && (
-          <div className="grid gap-3 border-t border-white/10 pt-5">
-            {results.map((result) => (
-              <div
-                key={result.id}
-                className="grid gap-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 lg:grid-cols-[minmax(0,1fr)_90px_100px_160px] lg:items-center"
-              >
-                <div>
-                  <p className="font-black text-white">{result.team.name}</p>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <PointsPresetCard label="1st place" value="10 pts" highlight />
+            <PointsPresetCard label="2nd place" value="7 pts" />
+            <PointsPresetCard label="3rd place" value="5 pts" />
+            <PointsPresetCard label="Participation" value="1 pt" />
+          </div>
+        </section>
 
-                  {result.note && (
-                    <p className="mt-1 text-sm text-gray-400">{result.note}</p>
-                  )}
-                </div>
+        <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          {eligibleRegistrations.length === 0 ? (
+            <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-gray-400">
+              No eligible teams yet. Register or approve teams before adding
+              results.
+            </div>
+          ) : (
+            <AdminTournamentResultForm
+              tournamentId={tournamentId}
+              registrations={eligibleRegistrations}
+            />
+          )}
+        </section>
 
-                <p className="text-sm font-black text-gray-300">
-                  #{result.placement}
-                </p>
+        <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+          <div className="border-b border-white/10 px-4 py-3">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+              Saved results
+            </p>
+          </div>
 
-                <p className="text-sm font-black text-green-300">
-                  {result.points} pts
-                </p>
-
-                <InlineAdminTournamentForm
-                  action={deleteTournamentResultInline}
-                  buttonLabel="Delete result"
-                  pendingLabel="Deleting..."
-                  variant="danger"
-                  className="grid gap-2"
-                  confirmTitle="Delete tournament result?"
-                  confirmDescription={`Delete ${result.team.name}'s result from ${tournamentTitle}?`}
-                  confirmLabel="Delete result"
+          {results.length === 0 ? (
+            <div className="p-4 text-sm text-gray-400">
+              No tournament results saved yet.
+            </div>
+          ) : (
+            <div className="grid gap-3 p-4">
+              {results.map((result) => (
+                <article
+                  key={result.id}
+                  className="grid gap-4 rounded-xl border border-white/10 bg-black/20 p-4 lg:grid-cols-[70px_minmax(0,1fr)_100px_140px] lg:items-center"
                 >
-                  <input type="hidden" name="resultId" value={result.id} />
-                  <input
-                    type="hidden"
-                    name="tournamentId"
-                    value={tournamentId}
-                  />
-                </InlineAdminTournamentForm>
-              </div>
-            ))}
-          </div>
-        )}
+                  <PlacementBadge placement={result.placement} />
+
+                  <div>
+                    <p className="font-black text-white">{result.team.name}</p>
+
+                    {result.note && (
+                      <p className="mt-1 text-sm text-gray-400">
+                        {result.note}
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="text-sm font-black text-green-300">
+                    {result.points} pts
+                  </p>
+
+                  <InlineAdminTournamentForm
+                    action={deleteTournamentResultInline}
+                    buttonLabel="Delete"
+                    pendingLabel="Deleting..."
+                    variant="danger"
+                    className="grid gap-2"
+                    confirmTitle="Delete tournament result?"
+                    confirmDescription={`Delete ${result.team.name}'s result from ${tournamentTitle}?`}
+                    confirmLabel="Delete result"
+                  >
+                    <input type="hidden" name="resultId" value={result.id} />
+                    <input
+                      type="hidden"
+                      name="tournamentId"
+                      value={tournamentId}
+                    />
+                  </InlineAdminTournamentForm>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </section>
   );
