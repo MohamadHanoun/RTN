@@ -45,18 +45,6 @@ function formatDate(date: Date | string) {
   });
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-5 shadow-2xl shadow-black/20">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-gray-500">
-        {label}
-      </p>
-
-      <p className="mt-2 text-3xl font-black text-white">{value}</p>
-    </div>
-  );
-}
-
 function Badge({
   children,
   variant = "default",
@@ -141,14 +129,6 @@ function AnnouncementRow({
 export default async function AnnouncementsPage() {
   const announcements = await getAnnouncements();
 
-  const importantAnnouncements = announcements.filter(
-    (announcement) => announcement.important,
-  );
-
-  const categoriesCount = new Set(
-    announcements.map((announcement) => announcement.category),
-  ).size;
-
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
@@ -173,12 +153,6 @@ export default async function AnnouncementsPage() {
         </section>
 
         <section className="mx-auto grid max-w-[1680px] gap-8 px-6 py-10 lg:px-10 2xl:px-14">
-          <section className="grid gap-4 md:grid-cols-3">
-            <StatCard label="Published" value={announcements.length} />
-            <StatCard label="Important" value={importantAnnouncements.length} />
-            <StatCard label="Categories" value={categoriesCount} />
-          </section>
-
           {announcements.length === 0 ? (
             <EmptyState
               title="No announcements yet"
