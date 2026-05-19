@@ -24,7 +24,7 @@ export default function AnnouncementCard({
 }: AnnouncementCardProps) {
   return (
     <article
-      className={`flex h-full flex-col overflow-hidden rounded-3xl border shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06] ${
+      className={`flex h-full flex-col overflow-hidden rounded-3xl border shadow-2xl shadow-black/20 transition hover:border-violet-400/30 hover:bg-white/[0.06] ${
         announcement.important
           ? "border-yellow-400/25 bg-yellow-500/[0.06]"
           : "border-white/10 bg-white/[0.04]"
