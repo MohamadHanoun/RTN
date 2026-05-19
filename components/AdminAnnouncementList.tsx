@@ -106,14 +106,24 @@ function formatDate(date: Date) {
 
 export default async function AdminAnnouncementList() {
   const announcements = await prisma.announcement.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {
+        published: "desc",
+      },
+      {
+        important: "desc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
   });
 
   const publishedCount = announcements.filter(
     (announcement) => announcement.published,
   ).length;
+
+  const hiddenCount = announcements.length - publishedCount;
 
   const importantCount = announcements.filter(
     (announcement) => announcement.important,
@@ -137,9 +147,10 @@ export default async function AdminAnnouncementList() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard label="Total" value={announcements.length} />
           <StatCard label="Published" value={publishedCount} />
+          <StatCard label="Hidden" value={hiddenCount} />
           <StatCard label="Important" value={importantCount} />
         </div>
       </div>
@@ -149,194 +160,209 @@ export default async function AdminAnnouncementList() {
           No announcements found.
         </div>
       ) : (
-        <div className="grid gap-5">
-          {announcements.map((announcement) => (
-            <article
-              key={announcement.id}
-              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
-            >
-              <div className="border-b border-white/10 bg-white/[0.03] p-5">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-2xl font-black text-white">
-                        {announcement.title}
-                      </h3>
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+          <div className="hidden border-b border-white/10 bg-black/20 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-400 xl:grid xl:grid-cols-[minmax(0,1fr)_170px_150px_160px_130px] xl:gap-5">
+            <span>Announcement</span>
+            <span>Category</span>
+            <span>Status</span>
+            <span>Created</span>
+            <span>Action</span>
+          </div>
 
-                      <StatusBadge
-                        published={announcement.published}
-                        important={announcement.important}
-                      />
-                    </div>
+          <div className="divide-y divide-white/10">
+            {announcements.map((announcement) => (
+              <article
+                key={announcement.id}
+                className="grid gap-4 p-5 transition hover:bg-white/[0.035]"
+              >
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_170px_150px_160px_130px] xl:items-center xl:gap-5">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-xl font-black text-white">
+                      {announcement.title}
+                    </h3>
 
-                    <p className="mt-2 text-sm text-gray-400">
-                      {announcement.category} · Created{" "}
-                      {formatDate(announcement.createdAt)}
+                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-gray-400">
+                      {announcement.description}
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                      Category
-                    </p>
+                  <span className="inline-flex w-fit rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-black text-indigo-300">
+                    {announcement.category}
+                  </span>
 
-                    <p className="mt-1 text-lg font-black text-white">
-                      {announcement.category}
-                    </p>
-                  </div>
+                  <StatusBadge
+                    published={announcement.published}
+                    important={announcement.important}
+                  />
+
+                  <p className="text-sm text-gray-400">
+                    {formatDate(announcement.createdAt)}
+                  </p>
+
+                  <details className="group">
+                    <summary className="cursor-pointer list-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-center text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white">
+                      Manage
+                    </summary>
+                  </details>
                 </div>
-              </div>
 
-              <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
-                <InlineAdminAnnouncementForm
-                  action={updateAnnouncementInline}
-                  buttonLabel="Save changes"
-                  pendingLabel="Saving..."
-                  className="grid gap-4"
-                >
-                  <input
-                    type="hidden"
-                    name="announcementId"
-                    value={announcement.id}
-                  />
-                  <input
-                    type="hidden"
-                    name="published"
-                    value={announcement.published ? "true" : "false"}
-                  />
-                  <input
-                    type="hidden"
-                    name="important"
-                    value={announcement.important ? "true" : "false"}
-                  />
+                <details className="rounded-xl border border-white/10 bg-black/20">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-black text-gray-300 transition hover:text-white">
+                    Edit and actions
+                  </summary>
 
-                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-                    <label className="grid gap-2">
-                      <FieldLabel>Title</FieldLabel>
-
+                  <div className="grid gap-5 border-t border-white/10 p-4 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
+                    <InlineAdminAnnouncementForm
+                      action={updateAnnouncementInline}
+                      buttonLabel="Save changes"
+                      pendingLabel="Saving..."
+                      className="grid gap-4"
+                    >
                       <input
-                        name="title"
-                        required
-                        defaultValue={announcement.title}
-                        className={inputClass()}
+                        type="hidden"
+                        name="announcementId"
+                        value={announcement.id}
                       />
-                    </label>
+                      <input
+                        type="hidden"
+                        name="published"
+                        value={announcement.published ? "true" : "false"}
+                      />
+                      <input
+                        type="hidden"
+                        name="important"
+                        value={announcement.important ? "true" : "false"}
+                      />
 
-                    <label className="grid gap-2">
-                      <FieldLabel>Category</FieldLabel>
+                      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+                        <label className="grid gap-2">
+                          <FieldLabel>Title</FieldLabel>
 
-                      <select
-                        name="category"
-                        required
-                        defaultValue={announcement.category}
-                        className={inputClass()}
-                      >
-                        {categories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                          <input
+                            name="title"
+                            required
+                            defaultValue={announcement.title}
+                            className={inputClass()}
+                          />
+                        </label>
+
+                        <label className="grid gap-2">
+                          <FieldLabel>Category</FieldLabel>
+
+                          <select
+                            name="category"
+                            required
+                            defaultValue={announcement.category}
+                            className={inputClass()}
+                          >
+                            {categories.map((category) => (
+                              <option key={category} value={category}>
+                                {category}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+
+                      <label className="grid gap-2">
+                        <FieldLabel>Description</FieldLabel>
+
+                        <textarea
+                          name="description"
+                          required
+                          defaultValue={announcement.description}
+                          className={`${inputClass()} min-h-24 resize-y text-sm leading-6`}
+                        />
+                      </label>
+                    </InlineAdminAnnouncementForm>
+
+                    <aside className="grid content-start gap-4">
+                      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                          Visibility
+                        </p>
+
+                        <div className="mt-3 grid gap-2">
+                          {announcement.published ? (
+                            <SmallAction
+                              action={unpublishAnnouncementInline}
+                              announcementId={announcement.id}
+                              label="Unpublish"
+                              pendingLabel="Unpublishing..."
+                              variant="danger"
+                            />
+                          ) : (
+                            <SmallAction
+                              action={publishAnnouncementInline}
+                              announcementId={announcement.id}
+                              label="Publish"
+                              pendingLabel="Publishing..."
+                              variant="success"
+                            />
+                          )}
+                        </div>
+                      </section>
+
+                      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                          Importance
+                        </p>
+
+                        <div className="mt-3 grid gap-2">
+                          {announcement.important ? (
+                            <SmallAction
+                              action={unmarkAnnouncementImportantInline}
+                              announcementId={announcement.id}
+                              label="Remove important"
+                              pendingLabel="Updating..."
+                            />
+                          ) : (
+                            <SmallAction
+                              action={markAnnouncementImportantInline}
+                              announcementId={announcement.id}
+                              label="Mark important"
+                              pendingLabel="Updating..."
+                              variant="success"
+                            />
+                          )}
+                        </div>
+                      </section>
+
+                      <section className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-red-300">
+                          Danger zone
+                        </p>
+
+                        <p className="mt-2 text-sm leading-6 text-gray-400">
+                          Delete this announcement permanently.
+                        </p>
+
+                        <div className="mt-3">
+                          <InlineAdminAnnouncementForm
+                            action={deleteAnnouncementInline}
+                            buttonLabel="Delete announcement"
+                            pendingLabel="Deleting..."
+                            variant="danger"
+                            className="grid gap-2"
+                            confirmTitle="Delete announcement?"
+                            confirmDescription={`Are you sure you want to delete ${announcement.title}? This cannot be undone.`}
+                            confirmLabel="Delete permanently"
+                          >
+                            <input
+                              type="hidden"
+                              name="announcementId"
+                              value={announcement.id}
+                            />
+                          </InlineAdminAnnouncementForm>
+                        </div>
+                      </section>
+                    </aside>
                   </div>
-
-                  <label className="grid gap-2">
-                    <FieldLabel>Description</FieldLabel>
-
-                    <textarea
-                      name="description"
-                      required
-                      defaultValue={announcement.description}
-                      className={`${inputClass()} min-h-24 resize-y text-sm leading-6`}
-                    />
-                  </label>
-                </InlineAdminAnnouncementForm>
-
-                <aside className="grid content-start gap-4">
-                  <section className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                      Publish
-                    </p>
-
-                    <div className="mt-3 grid gap-2">
-                      {announcement.published ? (
-                        <SmallAction
-                          action={unpublishAnnouncementInline}
-                          announcementId={announcement.id}
-                          label="Unpublish"
-                          pendingLabel="Unpublishing..."
-                          variant="danger"
-                        />
-                      ) : (
-                        <SmallAction
-                          action={publishAnnouncementInline}
-                          announcementId={announcement.id}
-                          label="Publish"
-                          pendingLabel="Publishing..."
-                          variant="success"
-                        />
-                      )}
-                    </div>
-                  </section>
-
-                  <section className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                      Importance
-                    </p>
-
-                    <div className="mt-3 grid gap-2">
-                      {announcement.important ? (
-                        <SmallAction
-                          action={unmarkAnnouncementImportantInline}
-                          announcementId={announcement.id}
-                          label="Remove important"
-                          pendingLabel="Updating..."
-                        />
-                      ) : (
-                        <SmallAction
-                          action={markAnnouncementImportantInline}
-                          announcementId={announcement.id}
-                          label="Mark important"
-                          pendingLabel="Updating..."
-                          variant="success"
-                        />
-                      )}
-                    </div>
-                  </section>
-
-                  <section className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-red-300">
-                      Danger zone
-                    </p>
-
-                    <p className="mt-2 text-sm leading-6 text-gray-400">
-                      Delete this announcement permanently.
-                    </p>
-
-                    <div className="mt-3">
-                      <InlineAdminAnnouncementForm
-                        action={deleteAnnouncementInline}
-                        buttonLabel="Delete announcement"
-                        pendingLabel="Deleting..."
-                        variant="danger"
-                        className="grid gap-2"
-                        confirmTitle="Delete announcement?"
-                        confirmDescription={`Are you sure you want to delete ${announcement.title}? This cannot be undone.`}
-                        confirmLabel="Delete permanently"
-                      >
-                        <input
-                          type="hidden"
-                          name="announcementId"
-                          value={announcement.id}
-                        />
-                      </InlineAdminAnnouncementForm>
-                    </div>
-                  </section>
-                </aside>
-              </div>
-            </article>
-          ))}
-        </div>
+                </details>
+              </article>
+            ))}
+          </div>
+        </section>
       )}
     </section>
   );
