@@ -48,7 +48,7 @@ const presets = [
 ];
 
 function inputClass() {
-  return "w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400";
+  return "w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-violet-400";
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -108,10 +108,10 @@ export default function AdminTournamentResultForm({
                 key={preset.label}
                 type="button"
                 onClick={() => applyPreset(preset)}
-                className={`rounded-xl border px-4 py-3 text-left transition ${
+                className={`rounded-2xl border px-4 py-3 text-left transition ${
                   isActive
-                    ? "border-green-500/30 bg-green-500/10 text-green-300"
-                    : "border-white/10 bg-black/20 text-gray-300 hover:bg-white/10 hover:text-white"
+                    ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                    : "border-white/10 bg-black/25 text-gray-300 hover:border-violet-400/30 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <span className="block text-sm font-black">{preset.label}</span>
