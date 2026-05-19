@@ -38,9 +38,9 @@ function StatusBadge({ status }: { status: string }) {
   const normalizedStatus = status.toLowerCase();
 
   const styles: Record<string, string> = {
-    registered: "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
-    approved: "border-green-500/20 bg-green-500/10 text-green-300",
-    rejected: "border-red-500/20 bg-red-500/10 text-red-300",
+    registered: "border-violet-400/25 bg-violet-500/10 text-violet-200",
+    approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
+    rejected: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
   };
 
@@ -53,7 +53,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex w-fit rounded border px-3 py-1 text-xs font-bold ${
+      className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-black ${
         styles[normalizedStatus] || "border-white/10 bg-white/5 text-gray-300"
       }`}
     >
@@ -66,36 +66,36 @@ function getRegistrationCardStyle(status: string) {
   const normalizedStatus = status.toLowerCase();
 
   if (normalizedStatus === "rejected") {
-    return "border-red-500/20 bg-red-500/10";
+    return "border-red-400/25 bg-red-500/10";
   }
 
   if (normalizedStatus === "approved") {
-    return "border-green-500/20 bg-green-500/10";
+    return "border-emerald-400/25 bg-emerald-500/10";
   }
 
   if (normalizedStatus === "cancelled") {
     return "border-white/10 bg-black/20";
   }
 
-  return "border-cyan-500/20 bg-cyan-500/10";
+  return "border-violet-400/25 bg-violet-500/10";
 }
 
 function getRegistrationTitle(status: string) {
   const normalizedStatus = status.toLowerCase();
 
   if (normalizedStatus === "rejected") {
-    return "Your registration was rejected";
+    return "Registration rejected";
   }
 
   if (normalizedStatus === "approved") {
-    return "Your team is approved";
+    return "Team approved";
   }
 
   if (normalizedStatus === "cancelled") {
-    return "Your registration was cancelled";
+    return "Registration cancelled";
   }
 
-  return "Your team is registered";
+  return "Registration submitted";
 }
 
 function ActionNotice({
@@ -109,10 +109,10 @@ function ActionNotice({
 
   return (
     <div
-      className={`rounded-xl border p-4 text-sm font-bold ${
+      className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
         result.ok
-          ? "border-green-500/20 bg-green-500/10 text-green-300"
-          : "border-red-500/20 bg-red-500/10 text-red-300"
+          ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+          : "border-red-400/25 bg-red-500/10 text-red-300"
       }`}
     >
       {result.message}
@@ -167,13 +167,13 @@ function RegisterForm({
       <input type="hidden" name="tournamentId" value={tournamentId} />
 
       <label className="grid gap-2">
-        <span className="font-bold text-gray-200">Choose team</span>
+        <span className="text-sm font-bold text-gray-200">Choose team</span>
 
         <select
           name="teamId"
           required
           defaultValue=""
-          className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+          className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-violet-400"
         >
           <option value="" disabled>
             Select team
@@ -190,7 +190,7 @@ function RegisterForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-fit rounded bg-indigo-500 px-5 py-3 font-black text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-fit rounded-xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-violet-950/30 transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? "Registering..." : "Register team"}
       </button>
@@ -257,7 +257,7 @@ function CancelRegistrationForm({
         <button
           type="submit"
           disabled={pending}
-          className="w-fit rounded border border-red-500/25 px-4 py-2 text-sm font-black text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-fit rounded-xl border border-red-500/25 px-4 py-2 text-sm font-black text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? "Cancelling..." : "Cancel registration"}
         </button>
@@ -266,10 +266,10 @@ function CancelRegistrationForm({
       </form>
 
       {confirmOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
-          <div className="w-full max-w-md overflow-hidden rounded-xl border border-white/10 bg-[#111827] shadow-2xl shadow-black/40">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#11121d] shadow-2xl shadow-black/40">
             <div className="border-b border-white/10 px-6 py-5">
-              <p className="text-sm font-black uppercase tracking-[0.14em] text-cyan-300">
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-violet-300">
                 Confirmation
               </p>
 
@@ -278,7 +278,7 @@ function CancelRegistrationForm({
               </h2>
 
               <p className="mt-2 leading-7 text-gray-300">
-                Are you sure you want to cancel {teamName}&apos;s registration?
+                Cancel {teamName}&apos;s registration?
               </p>
             </div>
 
@@ -286,7 +286,7 @@ function CancelRegistrationForm({
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="rounded border border-white/10 px-5 py-3 text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white"
+                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white"
               >
                 Keep registration
               </button>
@@ -295,7 +295,7 @@ function CancelRegistrationForm({
                 type="button"
                 onClick={runAction}
                 disabled={pending}
-                className="rounded bg-red-500 px-5 py-3 text-sm font-black text-white transition hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-xl bg-red-500 px-5 py-3 text-sm font-black text-white transition hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {pending ? "Cancelling..." : "Cancel registration"}
               </button>
@@ -304,6 +304,30 @@ function CancelRegistrationForm({
         </div>
       )}
     </>
+  );
+}
+
+function PanelNotice({
+  title,
+  description,
+  variant = "warning",
+}: {
+  title: string;
+  description: string;
+  variant?: "warning" | "danger" | "neutral";
+}) {
+  const styles = {
+    warning: "border-yellow-400/25 bg-yellow-500/10 text-yellow-300",
+    danger: "border-red-400/25 bg-red-500/10 text-red-300",
+    neutral: "border-white/10 bg-black/20 text-white",
+  };
+
+  return (
+    <div className={`rounded-2xl border p-5 ${styles[variant]}`}>
+      <p className="font-black">{title}</p>
+
+      <p className="mt-2 text-sm leading-6 text-gray-300">{description}</p>
+    </div>
   );
 }
 
@@ -324,36 +348,30 @@ function TournamentRegistrationPanel({
 
   if (!isLoggedIn) {
     return (
-      <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5">
-        <p className="font-black text-yellow-300">Login required</p>
-
-        <p className="mt-2 leading-7 text-gray-300">
-          Login with Discord to register a team for this tournament.
-        </p>
-      </div>
+      <PanelNotice
+        title="Login required"
+        description="Login with Discord to register a team for this tournament."
+      />
     );
   }
 
   if (!isGuildMember) {
     return (
-      <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5">
-        <p className="font-black text-yellow-300">RTN Discord required</p>
-
-        <p className="mt-2 leading-7 text-gray-300">
-          You must be an RTN Discord member to register for tournaments.
-        </p>
-      </div>
+      <PanelNotice
+        title="Discord membership required"
+        description="You must be an Ascendra Discord member to register for tournaments."
+      />
     );
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       {activeRegistrations.length > 0 && (
         <section className="grid gap-3">
           {activeRegistrations.map((registration) => (
             <div
               key={registration.id}
-              className={`rounded-xl border p-4 ${getRegistrationCardStyle(
+              className={`rounded-2xl border p-4 ${getRegistrationCardStyle(
                 registration.status,
               )}`}
             >
@@ -376,7 +394,7 @@ function TournamentRegistrationPanel({
               </div>
 
               {registration.rejectionReason && (
-                <div className="mt-4 rounded-lg border border-red-500/20 bg-black/20 px-4 py-3">
+                <div className="mt-4 rounded-xl border border-red-500/20 bg-black/20 px-4 py-3">
                   <p className="font-black text-red-300">Rejection reason</p>
 
                   <p className="mt-1 text-sm leading-6 text-gray-300">
@@ -399,23 +417,19 @@ function TournamentRegistrationPanel({
       )}
 
       {registrationStatus !== "open" && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-5">
-          <p className="font-black text-red-300">Registration closed</p>
-
-          <p className="mt-2 leading-7 text-gray-300">
-            This tournament is not accepting registrations right now.
-          </p>
-        </div>
+        <PanelNotice
+          title="Registration closed"
+          description="This tournament is not accepting registrations right now."
+          variant="danger"
+        />
       )}
 
       {registrationStatus === "open" && slotsRemaining <= 0 && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-5">
-          <p className="font-black text-red-300">Tournament full</p>
-
-          <p className="mt-2 leading-7 text-gray-300">
-            There are no slots remaining for this tournament.
-          </p>
-        </div>
+        <PanelNotice
+          title="Tournament full"
+          description="There are no slots remaining for this tournament."
+          variant="danger"
+        />
       )}
 
       {registrationStatus === "open" &&
@@ -423,14 +437,11 @@ function TournamentRegistrationPanel({
         !hasOpenRegistration && (
           <>
             {availableTeams.length === 0 ? (
-              <div className="rounded-xl border border-white/10 bg-black/20 p-5">
-                <p className="font-black text-white">No eligible teams</p>
-
-                <p className="mt-2 leading-7 text-gray-300">
-                  You need a team that matches this game and has at least{" "}
-                  {teamSize} player{teamSize === 1 ? "" : "s"}.
-                </p>
-              </div>
+              <PanelNotice
+                title="No eligible teams"
+                description={`You need a team that matches this game and has at least ${teamSize} player${teamSize === 1 ? "" : "s"}.`}
+                variant="neutral"
+              />
             ) : (
               <RegisterForm
                 tournamentId={tournamentId}
@@ -440,7 +451,7 @@ function TournamentRegistrationPanel({
           </>
         )}
 
-      <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-gray-400">
+      <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-6 text-gray-400">
         Tournament status:{" "}
         <span className="font-bold text-white">{tournamentStatus}</span>
       </div>
