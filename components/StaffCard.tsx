@@ -26,27 +26,35 @@ export default function StaffCard({ name, role, status }: StaffCardProps) {
     .slice(0, 2);
 
   return (
-    <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06]">
-      <div className="relative mx-auto mb-5 grid h-20 w-20 place-items-center rounded-2xl border border-violet-400/25 bg-violet-500/10 text-2xl font-black text-violet-200">
+    <article className="grid gap-4 p-5 transition hover:bg-white/[0.035] md:grid-cols-[90px_minmax(0,1fr)_minmax(0,1fr)_130px] md:items-center">
+      <div className="relative grid h-12 w-12 place-items-center rounded-2xl border border-violet-400/25 bg-violet-500/10 text-sm font-black text-violet-200">
         <div className="absolute inset-0 rounded-2xl bg-violet-500/20 blur-xl" />
         <span className="relative">{initials}</span>
       </div>
 
-      <h2 className="text-2xl font-black text-white">{name}</h2>
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
+          Name
+        </p>
 
-      <p className="mt-2 text-sm font-black uppercase tracking-[0.16em] text-violet-300">
-        {role}
-      </p>
-
-      <div className="mt-4 flex justify-center">
-        <span
-          className={`inline-flex rounded-full border px-3 py-1 text-xs font-black capitalize ${getStatusClasses(
-            status,
-          )}`}
-        >
-          {status}
-        </span>
+        <h2 className="mt-1 text-xl font-black text-white">{name}</h2>
       </div>
+
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
+          Role
+        </p>
+
+        <p className="mt-1 text-sm font-black text-violet-300">{role}</p>
+      </div>
+
+      <span
+        className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-black capitalize ${getStatusClasses(
+          status,
+        )}`}
+      >
+        {status}
+      </span>
     </article>
   );
 }
