@@ -4,15 +4,14 @@ import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
 import LeaderboardTable from "@/components/LeaderboardTable";
 import Navbar from "@/components/Navbar";
-import PageHeader from "@/components/PageHeader";
 import TeamLeaderboardTable from "@/components/TeamLeaderboardTable";
 import type { LeaderboardTeam, LeaderboardUser } from "@/data/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { getGameImageUrl } from "@/lib/tournamentImages";
 
 export const metadata: Metadata = {
-  title: "Leaderboard",
-  description: "View RTN tournament points and player standings.",
+  title: "Leaderboard | Ascendra",
+  description: "View Ascendra tournament points and player standings.",
 };
 
 export const runtime = "nodejs";
@@ -29,12 +28,12 @@ const games = ["Overall", "Valorant", "League of Legends", "CS2", "Dota2"];
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
         {label}
       </p>
 
-      <p className="mt-2 text-3xl font-black text-white">{value}</p>
+      <p className="mt-3 text-3xl font-black text-white">{value}</p>
     </div>
   );
 }
@@ -63,7 +62,7 @@ function RankingTypeFilter({
   selectedType: "players" | "teams";
 }) {
   return (
-    <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:grid-cols-2">
+    <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-2xl shadow-black/20 sm:grid-cols-2">
       {[
         {
           label: "Players",
@@ -82,14 +81,14 @@ function RankingTypeFilter({
           <Link
             key={item.value}
             href={buildLeaderboardHref(selectedGame, item.value)}
-            className={`rounded-xl border px-4 py-3 transition ${
+            className={`rounded-2xl border px-5 py-4 transition ${
               isActive
-                ? "border-indigo-400 bg-indigo-500/10 text-white"
+                ? "border-violet-400/35 bg-violet-500/15 text-white shadow-lg shadow-violet-950/20"
                 : "border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
             }`}
           >
             <p className="font-black">{item.label}</p>
-            <p className="mt-1 text-xs text-gray-500">{item.description}</p>
+            <p className="mt-1 text-sm text-gray-500">{item.description}</p>
           </Link>
         );
       })}
@@ -113,16 +112,16 @@ function GameFilter({
           <Link
             key={game}
             href={buildLeaderboardHref(game, selectedType)}
-            className={`group overflow-hidden rounded-2xl border transition ${
+            className={`group overflow-hidden rounded-3xl border shadow-2xl shadow-black/20 transition ${
               isActive
-                ? "border-indigo-400 bg-indigo-500/10"
-                : "border-white/10 bg-white/[0.04] hover:border-cyan-400/30 hover:bg-white/[0.06]"
+                ? "border-violet-400/35 bg-violet-500/10"
+                : "border-white/10 bg-white/[0.04] hover:border-violet-400/30 hover:bg-white/[0.06]"
             }`}
           >
             <div
               className="min-h-28 bg-cover bg-center"
               style={{
-                backgroundImage: `linear-gradient(to bottom, rgba(11,15,26,0.05), rgba(11,15,26,0.82)), url("${getGameImageUrl(
+                backgroundImage: `linear-gradient(to bottom, rgba(7,8,17,0.08), rgba(7,8,17,0.86)), url("${getGameImageUrl(
                   game,
                 )}")`,
               }}
@@ -162,28 +161,28 @@ function SelectedGameHero({
   const itemLabel = selectedType === "players" ? "player" : "team";
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]">
+    <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
       <div
         className="relative min-h-72 bg-cover bg-center"
         style={{
-          backgroundImage: `linear-gradient(to right, rgba(11,15,26,0.96), rgba(11,15,26,0.72), rgba(11,15,26,0.18)), url("${getGameImageUrl(
+          backgroundImage: `linear-gradient(to right, rgba(7,8,17,0.96), rgba(7,8,17,0.72), rgba(7,8,17,0.18)), url("${getGameImageUrl(
             selectedGame,
           )}")`,
         }}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.24)_0%,transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.14)_0%,transparent_26%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_26%)]" />
 
         <div className="relative z-10 flex min-h-72 max-w-3xl flex-col justify-end p-7">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-300">
-            {selectedGame === "Overall" ? "Overall Ranking" : "Game Ranking"}
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+            {selectedGame === "Overall" ? "Overall ranking" : "Game ranking"}
           </p>
 
-          <h2 className="mt-3 text-4xl font-black text-white md:text-5xl">
+          <h2 className="mt-3 text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
             {selectedGame}
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-300">
-            Tournament points are calculated from official RTN tournament
+            Tournament points are calculated from official Ascendra tournament
             results saved by admins.
           </p>
 
@@ -193,7 +192,7 @@ function SelectedGameHero({
               {rankedItems === 1 ? "" : "s"}
             </span>
 
-            <span className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm font-black text-green-300">
+            <span className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-300">
               {totalPoints} total points
             </span>
           </div>
@@ -401,17 +400,48 @@ export default async function LeaderboardPage({
       : teamLeaderboard[0]?.name || "-";
 
   return (
-    <main className="min-h-screen bg-[#0b0f1a] text-white">
-      <Navbar />
+    <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
 
-      <PageHeader
-        label="RTN Leaderboard"
-        title="Tournament points standings."
-        description="View RTN players and teams ranked by official tournament points from saved tournament results."
-      />
+      <div className="relative z-10">
+        <Navbar />
 
-      <section className="mx-auto max-w-7xl px-6 pb-24">
-        <div className="grid gap-6">
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-45"
+            style={{
+              backgroundImage: `url("${getGameImageUrl(selectedGame)}")`,
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#070811]/70 via-[#070811]/88 to-[#070811]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
+
+          <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
+            <p className="mb-5 text-sm font-black uppercase tracking-[0.22em] text-violet-300">
+              Ascendra leaderboard
+            </p>
+
+            <h1 className="max-w-5xl text-5xl font-black uppercase leading-[1.02] tracking-tight text-white md:text-7xl">
+              Tournament points standings.
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-300">
+              View players and teams ranked by official tournament points from
+              saved Ascendra tournament results.
+            </p>
+          </div>
+
+          <svg
+            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
+            viewBox="0 0 1440 120"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
+          </svg>
+        </section>
+
+        <section className="mx-auto grid max-w-[1440px] gap-6 px-6 py-12 lg:px-10">
           <RankingTypeFilter
             selectedGame={selectedGame}
             selectedType={selectedType}
@@ -465,10 +495,10 @@ export default async function LeaderboardPage({
               actionHref="/tournaments"
             />
           )}
-        </div>
-      </section>
+        </section>
 
-      <Footer />
+        <Footer />
+      </div>
     </main>
   );
 }
