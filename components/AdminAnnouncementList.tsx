@@ -24,7 +24,7 @@ type AnnouncementAction = (formData: FormData) => Promise<{
 }>;
 
 function inputClass() {
-  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400";
+  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-violet-400";
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -43,7 +43,7 @@ function StatusBadge({
       <span
         className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-black ${
           published
-            ? "border-green-500/20 bg-green-500/10 text-green-300"
+            ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
             : "border-white/10 bg-white/5 text-gray-300"
         }`}
       >
@@ -51,7 +51,7 @@ function StatusBadge({
       </span>
 
       {important && (
-        <span className="inline-flex w-fit rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+        <span className="inline-flex w-fit rounded-full border border-yellow-400/25 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
           Important
         </span>
       )}
@@ -61,8 +61,8 @@ function StatusBadge({
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+    <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
         {label}
       </p>
 
@@ -130,11 +130,11 @@ export default async function AdminAnnouncementList() {
   ).length;
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-16">
+    <section className="grid gap-6">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
-            Manage Announcements
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+            Manage announcements
           </p>
 
           <h2 className="mt-2 text-3xl font-black text-white">
@@ -156,12 +156,12 @@ export default async function AdminAnnouncementList() {
       </div>
 
       {announcements.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-gray-300">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-gray-300 shadow-2xl shadow-black/20">
           No announcements found.
         </div>
       ) : (
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-          <div className="hidden border-b border-white/10 bg-black/20 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-400 xl:grid xl:grid-cols-[minmax(0,1fr)_170px_150px_160px_130px] xl:gap-5">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
+          <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1fr)_170px_150px_160px_130px] xl:gap-5">
             <span>Announcement</span>
             <span>Category</span>
             <span>Status</span>
@@ -186,7 +186,7 @@ export default async function AdminAnnouncementList() {
                     </p>
                   </div>
 
-                  <span className="inline-flex w-fit rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-black text-indigo-300">
+                  <span className="inline-flex w-fit rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-200">
                     {announcement.category}
                   </span>
 
@@ -200,13 +200,13 @@ export default async function AdminAnnouncementList() {
                   </p>
 
                   <details className="group">
-                    <summary className="cursor-pointer list-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-center text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white">
+                    <summary className="cursor-pointer list-none rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-center text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white">
                       Manage
                     </summary>
                   </details>
                 </div>
 
-                <details className="rounded-xl border border-white/10 bg-black/20">
+                <details className="rounded-2xl border border-white/10 bg-black/25">
                   <summary className="cursor-pointer px-4 py-3 text-sm font-black text-gray-300 transition hover:text-white">
                     Edit and actions
                   </summary>
@@ -277,8 +277,8 @@ export default async function AdminAnnouncementList() {
                     </InlineAdminAnnouncementForm>
 
                     <aside className="grid content-start gap-4">
-                      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                           Visibility
                         </p>
 
@@ -303,8 +303,8 @@ export default async function AdminAnnouncementList() {
                         </div>
                       </section>
 
-                      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                           Importance
                         </p>
 
@@ -328,7 +328,7 @@ export default async function AdminAnnouncementList() {
                         </div>
                       </section>
 
-                      <section className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+                      <section className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
                         <p className="text-xs font-black uppercase tracking-[0.14em] text-red-300">
                           Danger zone
                         </p>
