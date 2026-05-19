@@ -10,8 +10,8 @@ export default function StatsDetailCard({
   description,
 }: StatsDetailCardProps) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition hover:border-cyan-400/30 hover:bg-white/[0.06]">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
+    <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06]">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
         {title}
       </p>
 

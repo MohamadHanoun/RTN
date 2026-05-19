@@ -24,9 +24,9 @@ export default function AnnouncementCard({
 }: AnnouncementCardProps) {
   return (
     <article
-      className={`flex h-full flex-col overflow-hidden rounded-2xl border transition hover:border-cyan-400/30 hover:bg-white/[0.06] ${
+      className={`flex h-full flex-col overflow-hidden rounded-3xl border shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06] ${
         announcement.important
-          ? "border-yellow-500/20 bg-yellow-500/[0.06]"
+          ? "border-yellow-400/25 bg-yellow-500/[0.06]"
           : "border-white/10 bg-white/[0.04]"
       }`}
     >
@@ -36,17 +36,17 @@ export default function AnnouncementCard({
         }`}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-black text-indigo-300">
+          <span className="inline-flex rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-200">
             {announcement.category}
           </span>
 
           {announcement.important && (
-            <span className="inline-flex rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+            <span className="inline-flex rounded-full border border-yellow-400/25 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
               Important
             </span>
           )}
 
-          <span className="inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-black text-gray-400">
+          <span className="inline-flex rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs font-black text-gray-400">
             {formatDate(announcement.createdAt)}
           </span>
         </div>
