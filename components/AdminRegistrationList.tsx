@@ -16,9 +16,9 @@ function StatusBadge({ status }: { status: string }) {
   const normalizedStatus = status.toLowerCase();
 
   const styles: Record<string, string> = {
-    registered: "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
-    approved: "border-green-500/20 bg-green-500/10 text-green-300",
-    rejected: "border-red-500/20 bg-red-500/10 text-red-300",
+    registered: "border-cyan-400/25 bg-cyan-500/10 text-cyan-300",
+    approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
+    rejected: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
   };
 
@@ -38,8 +38,8 @@ function RoleBadge({ leader }: { leader: boolean }) {
     <span
       className={`w-fit rounded-full border px-3 py-1 text-xs font-black ${
         leader
-          ? "border-green-500/20 bg-green-500/10 text-green-300"
-          : "border-indigo-500/20 bg-indigo-500/10 text-indigo-300"
+          ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+          : "border-violet-400/25 bg-violet-500/10 text-violet-200"
       }`}
     >
       {leader ? "Leader" : "Member"}
@@ -49,12 +49,24 @@ function RoleBadge({ leader }: { leader: boolean }) {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+    <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
         {label}
       </p>
 
       <p className="mt-1 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-gray-500">
+        {label}
+      </p>
+
+      <p className="mt-1 text-sm font-black text-white">{value}</p>
     </div>
   );
 }
@@ -141,12 +153,12 @@ export default async function AdminRegistrationList({
   ).length;
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-16">
+    <section className="grid gap-6">
       <ProfileNotice message={message} error={error} />
 
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
             Registrations
           </p>
 
@@ -170,17 +182,17 @@ export default async function AdminRegistrationList({
       </div>
 
       {sortedRegistrations.length === 0 ? (
-        <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-gray-300">
+        <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-gray-300 shadow-2xl shadow-black/20">
           No tournament registrations found.
         </section>
       ) : (
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-          <div className="hidden border-b border-white/10 bg-black/20 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-400 xl:grid xl:grid-cols-[minmax(0,1fr)_180px_160px_150px_140px] xl:gap-5">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
+          <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.1fr)_220px_150px_150px_130px] xl:gap-5">
             <span>Team</span>
             <span>Tournament</span>
             <span>Status</span>
             <span>Players</span>
-            <span>Actions</span>
+            <span>Action</span>
           </div>
 
           <div className="divide-y divide-white/10">
@@ -194,14 +206,14 @@ export default async function AdminRegistrationList({
                   key={registration.id}
                   className="grid gap-4 p-5 transition hover:bg-white/[0.035]"
                 >
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_180px_160px_150px_140px] xl:items-center xl:gap-5">
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_220px_150px_150px_130px] xl:items-center xl:gap-5">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="truncate text-xl font-black text-white">
                           {registration.team.name}
                         </h2>
 
-                        <span className="inline-flex rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-300">
+                        <span className="inline-flex rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-200">
                           {registration.team.game}
                         </span>
                       </div>
@@ -217,8 +229,8 @@ export default async function AdminRegistrationList({
                       )}
                     </div>
 
-                    <div>
-                      <p className="font-black text-white">
+                    <div className="min-w-0">
+                      <p className="truncate font-black text-white">
                         {registration.tournament.title}
                       </p>
 
@@ -229,13 +241,10 @@ export default async function AdminRegistrationList({
 
                     <StatusBadge status={registration.status} />
 
-                    <p className="text-sm text-gray-300">
-                      <span className="font-black text-white">
-                        {registration.team.members.length}
-                      </span>{" "}
-                      player
-                      {registration.team.members.length === 1 ? "" : "s"}
-                    </p>
+                    <MiniStat
+                      label="Players"
+                      value={registration.team.members.length}
+                    />
 
                     <div className="grid gap-2">
                       {canApprove ? (
@@ -252,21 +261,21 @@ export default async function AdminRegistrationList({
                           />
                         </InlineAdminRegistrationForm>
                       ) : (
-                        <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-center text-sm font-black text-green-300">
+                        <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-center text-sm font-black text-emerald-300">
                           Approved
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <details className="rounded-xl border border-white/10 bg-black/20">
+                  <details className="rounded-2xl border border-white/10 bg-black/25">
                     <summary className="cursor-pointer px-4 py-3 text-sm font-black text-gray-300 transition hover:text-white">
                       Review details and actions
                     </summary>
 
                     <div className="grid gap-5 border-t border-white/10 p-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_230px] lg:items-start">
-                      <section>
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                           Registration info
                         </p>
 
@@ -290,14 +299,14 @@ export default async function AdminRegistrationList({
                         </div>
                       </section>
 
-                      <section>
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                           Team players
                         </p>
 
                         <div className="mt-4 grid gap-2">
                           {registration.team.members.length === 0 ? (
-                            <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-gray-400">
+                            <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-gray-400">
                               No players in this team.
                             </div>
                           ) : (
@@ -308,7 +317,7 @@ export default async function AdminRegistrationList({
                               return (
                                 <div
                                   key={member.id}
-                                  className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                                  className="grid gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                                 >
                                   <div>
                                     <p className="font-black text-white">
@@ -329,7 +338,7 @@ export default async function AdminRegistrationList({
                       </section>
 
                       <aside className="grid content-start gap-3">
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                           Actions
                         </p>
 
