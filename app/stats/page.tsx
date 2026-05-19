@@ -1,52 +1,215 @@
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import type { Metadata } from "next";
+import StatsDetailCard from "@/components/StatsDetailCard";
+import { prisma } from "@/lib/prisma";
+import { getGameImageUrl } from "@/lib/tournamentImages";
 
-export const metadata: Metadata = {
-  title: "About | Ascendra",
-  description: "Learn more about the Ascendra competitive gaming community.",
-};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const values = [
-  {
-    title: "Community first",
-    description:
-      "Ascendra is built around respect, teamwork, and a welcoming space for players of different games and skill levels.",
-  },
-  {
-    title: "Competitive events",
-    description:
-      "The platform focuses on tournaments, teams, rankings, and structured competitive moments.",
-  },
-  {
-    title: "Fair play",
-    description:
-      "Good behavior, fair competition, and respect for other members are core parts of the Ascendra experience.",
-  },
-  {
-    title: "Rise together",
-    description:
-      "Ascendra is made for players who want to meet others, improve, compete, and grow as a community.",
-  },
-];
+const games = ["Valorant", "League of Legends", "CS2", "Dota2"];
 
-function ValueCard({
-  title,
-  description,
+function GameStatRow({
+  label,
+  value,
+  variant = "default",
 }: {
-  title: string;
-  description: string;
+  label: string;
+  value: number;
+  variant?: "default" | "points";
 }) {
   return (
-    <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06]">
-      <h3 className="mb-3 text-xl font-black text-white">{title}</h3>
+    <div
+      className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 ${
+        variant === "points"
+          ? "border-emerald-400/25 bg-emerald-500/10"
+          : "border-white/10 bg-black/25"
+      }`}
+    >
+      <p
+        className={`text-xs font-black uppercase tracking-[0.14em] ${
+          variant === "points" ? "text-emerald-300" : "text-gray-500"
+        }`}
+      >
+        {label}
+      </p>
 
-      <p className="leading-7 text-gray-400">{description}</p>
+      <p className="text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function GameStatsCard({
+  game,
+  tournaments,
+  results,
+  points,
+}: {
+  game: string;
+  tournaments: number;
+  results: number;
+  points: number;
+}) {
+  return (
+    <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06]">
+      <div
+        className="min-h-40 bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(7,8,17,0.08), rgba(7,8,17,0.88)), url("${getGameImageUrl(
+            game,
+          )}")`,
+        }}
+      />
+
+      <div className="p-5">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
+          Game stats
+        </p>
+
+        <h2 className="mt-2 text-2xl font-black text-white">{game}</h2>
+
+        <div className="mt-5 grid gap-2">
+          <GameStatRow label="Tournaments" value={tournaments} />
+          <GameStatRow label="Results" value={results} />
+          <GameStatRow label="Points" value={points} variant="points" />
+        </div>
+      </div>
     </article>
   );
 }
 
-export default function AboutPage() {
+async function getStatsData() {
+  const [
+    rulesCount,
+    rolesCount,
+    staffCount,
+    tournamentsCount,
+    announcementsCount,
+    usersCount,
+    teamsCount,
+    approvedRegistrationsCount,
+    tournamentResults,
+    tournamentPoints,
+    tournamentsByGame,
+  ] = await Promise.all([
+    prisma.rule.count({ where: { isActive: true } }),
+    prisma.role.count({ where: { isActive: true } }),
+    prisma.staffMember.count({ where: { isActive: true } }),
+    prisma.tournament.count(),
+    prisma.announcement.count({ where: { published: true } }),
+    prisma.user.count(),
+    prisma.team.count(),
+    prisma.tournamentRegistration.count({
+      where: {
+        status: "approved",
+      },
+    }),
+    prisma.tournamentResult.findMany({
+      select: {
+        points: true,
+        tournament: {
+          select: {
+            game: true,
+          },
+        },
+      },
+    }),
+    prisma.tournamentResult.aggregate({
+      _sum: {
+        points: true,
+      },
+    }),
+    prisma.tournament.groupBy({
+      by: ["game"],
+      _count: {
+        id: true,
+      },
+    }),
+  ]);
+
+  const gameStats = games.map((game) => {
+    const gameResults = tournamentResults.filter(
+      (result) => result.tournament.game === game,
+    );
+
+    const gamePoints = gameResults.reduce(
+      (total, result) => total + result.points,
+      0,
+    );
+
+    const gameTournamentCount =
+      tournamentsByGame.find((item) => item.game === game)?._count.id || 0;
+
+    return {
+      game,
+      tournaments: gameTournamentCount,
+      results: gameResults.length,
+      points: gamePoints,
+    };
+  });
+
+  const overviewStats = [
+    {
+      title: "Players",
+      value: String(usersCount),
+      description: "Players who have logged in with Discord.",
+    },
+    {
+      title: "Teams",
+      value: String(teamsCount),
+      description: "Teams created by Ascendra players.",
+    },
+    {
+      title: "Tournaments",
+      value: String(tournamentsCount),
+      description: "Tournament records available on Ascendra.",
+    },
+    {
+      title: "Tournament Results",
+      value: String(tournamentResults.length),
+      description: "Final tournament results saved by admins.",
+    },
+    {
+      title: "Tournament Points",
+      value: String(tournamentPoints._sum.points || 0),
+      description: "Total points awarded from tournament results.",
+    },
+    {
+      title: "Approved Registrations",
+      value: String(approvedRegistrationsCount),
+      description: "Tournament registrations approved by admins.",
+    },
+    {
+      title: "Announcements",
+      value: String(announcementsCount),
+      description: "Published community announcements.",
+    },
+    {
+      title: "Rules",
+      value: String(rulesCount),
+      description: "Active community rules.",
+    },
+    {
+      title: "Roles",
+      value: String(rolesCount),
+      description: "Active community roles.",
+    },
+    {
+      title: "Staff",
+      value: String(staffCount),
+      description: "Visible staff members.",
+    },
+  ];
+
+  return {
+    overviewStats,
+    gameStats,
+  };
+}
+
+export default async function StatsPage() {
+  const { overviewStats, gameStats } = await getStatsData();
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
@@ -60,17 +223,16 @@ export default function AboutPage() {
 
           <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
             <p className="mb-5 text-sm font-black uppercase tracking-[0.22em] text-violet-300">
-              About Ascendra
+              Ascendra stats
             </p>
 
             <h1 className="max-w-5xl text-5xl font-black uppercase leading-[1.02] tracking-tight text-white md:text-7xl">
-              A competitive home for players and teams.
+              Community statistics.
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-300">
-              Ascendra is a gaming community and tournament platform for players
-              who enjoy teamwork, competition, events, rankings, and building
-              something together.
+              Current Ascendra numbers for players, teams, tournaments, results,
+              points, and game activity.
             </p>
           </div>
 
@@ -84,68 +246,46 @@ export default function AboutPage() {
           </svg>
         </section>
 
-        <section className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 shadow-2xl shadow-black/20">
-              <p className="mb-4 text-sm font-black uppercase tracking-[0.18em] text-violet-300">
-                Who we are
-              </p>
-
-              <h2 className="mb-5 text-3xl font-black text-white">
-                Built for organized competitive play.
-              </h2>
-
-              <div className="grid gap-5 leading-8 text-gray-300">
-                <p>
-                  Ascendra is made for players who want more than random
-                  matches. It is a place where members can create teams, join
-                  tournaments, earn points, follow rankings, and take part in a
-                  focused competitive community.
-                </p>
-
-                <p>
-                  The platform welcomes both casual players and competitive
-                  players. The goal is to keep the experience clear, fair, and
-                  enjoyable while giving teams a structured place to compete.
-                </p>
-
-                <p>
-                  Ascendra is designed to grow step by step: tournaments first,
-                  then realtime updates, Discord bot integration, brackets, and
-                  deeper competitive systems.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-violet-400/25 bg-violet-500/10 p-8 shadow-2xl shadow-violet-950/20">
-              <p className="mb-4 text-sm font-black uppercase tracking-[0.18em] text-violet-300">
-                What Ascendra offers
-              </p>
-
-              <h2 className="mb-5 text-3xl font-black text-white">
-                RISE BEYOND LIMITS
-              </h2>
-
-              <ul className="grid gap-4 text-gray-300">
-                <li>Team creation and member invitations</li>
-                <li>Community tournaments and registrations</li>
-                <li>Leaderboard and tournament points</li>
-                <li>Rules that keep competition fair</li>
-                <li>Staff and admin tools for smooth management</li>
-                <li>Future Discord bot and bracket system</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {values.map((item) => (
-              <ValueCard
+        <section className="mx-auto grid max-w-[1440px] gap-10 px-6 py-12 lg:px-10">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+            {overviewStats.map((item) => (
+              <StatsDetailCard
                 key={item.title}
                 title={item.title}
+                value={item.value}
                 description={item.description}
               />
             ))}
           </div>
+
+          <section className="grid gap-5">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+                Game breakdown
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black text-white">
+                Stats by game
+              </h2>
+
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
+                Tournament activity grouped by game, including saved results and
+                awarded points.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {gameStats.map((item) => (
+                <GameStatsCard
+                  key={item.game}
+                  game={item.game}
+                  tournaments={item.tournaments}
+                  results={item.results}
+                  points={item.points}
+                />
+              ))}
+            </div>
+          </section>
         </section>
 
         <Footer />
