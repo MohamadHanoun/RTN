@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import ProfileIdentityActions from "@/components/ProfileIdentityActions";
 import ProfileNotice from "@/components/ProfileNotice";
 import { prisma } from "@/lib/prisma";
+import CustomSelect from "@/components/CustomSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -360,22 +361,16 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                       <label className="grid gap-2">
                         <span className="font-bold text-gray-200">Game</span>
 
-                        <select
+                        <CustomSelect
                           name="game"
                           required
-                          defaultValue=""
-                          className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-violet-400"
-                        >
-                          <option value="" disabled>
-                            Select game
-                          </option>
-
-                          {games.map((game) => (
-                            <option key={game} value={game}>
-                              {game}
-                            </option>
-                          ))}
-                        </select>
+                          placeholder="Select game"
+                          options={games.map((game) => ({
+                            value: game,
+                            label: game,
+                            description: "Team game",
+                          }))}
+                        />
                       </label>
                     </div>
 
