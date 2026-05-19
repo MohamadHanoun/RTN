@@ -10,7 +10,7 @@ const mainLinks = [
   { href: "/", label: "Home" },
   { href: "/tournaments", label: "Tournaments" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/announcements", label: "Announcements" },
+  { href: "/announcements", label: "News" },
 ];
 
 const moreLinks = [
@@ -18,6 +18,7 @@ const moreLinks = [
   { href: "/rules", label: "Rules" },
   { href: "/roles", label: "Roles" },
   { href: "/staff", label: "Staff" },
+  { href: "/stats", label: "Stats" },
 ];
 
 const discordInvite = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "#";
@@ -28,6 +29,41 @@ type NavbarClientProps = {
   userName: string | null;
   userImage: string | null;
 };
+
+function AscendraMark({ small = false }: { small?: boolean }) {
+  return (
+    <span
+      className={`relative grid shrink-0 place-items-center ${
+        small ? "h-8 w-8" : "h-10 w-10"
+      }`}
+    >
+      <span className="absolute inset-0 rounded-xl bg-violet-500/40 blur-xl" />
+      <span
+        className={`relative rotate-45 border-l-[4px] border-t-[4px] border-violet-400 ${
+          small ? "h-6 w-6" : "h-8 w-8"
+        }`}
+      />
+    </span>
+  );
+}
+
+function BrandLogo() {
+  return (
+    <Link href="/" className="flex shrink-0 items-center gap-3">
+      <AscendraMark />
+
+      <div className="hidden sm:block">
+        <span className="block text-lg font-black uppercase leading-none tracking-[0.18em] text-white">
+          Ascendra
+        </span>
+
+        <span className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-300">
+          Rise Beyond Limits
+        </span>
+      </div>
+    </Link>
+  );
+}
 
 function NavLink({
   href,
@@ -45,9 +81,9 @@ function NavLink({
     <Link
       href={href}
       onClick={onClick}
-      className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+      className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
         isActive
-          ? "bg-indigo-500/20 text-indigo-300"
+          ? "bg-violet-500/20 text-violet-200 shadow shadow-violet-950/20"
           : "text-gray-300 hover:bg-white/10 hover:text-white"
       }`}
     >
@@ -121,28 +157,9 @@ export default function NavbarClient({
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0f1a]/90 backdrop-blur-xl">
-        <nav className="flex w-full items-center gap-4 px-6 py-4">
-          <Link href="/" className="flex shrink-0 items-center gap-3">
-            <Image
-              src="/logo-mark-clean.svg"
-              alt="RTN logo"
-              width={44}
-              height={44}
-              priority
-              className="rounded-xl"
-            />
-
-            <div className="hidden sm:block">
-              <span className="block text-lg font-black leading-none text-white">
-                RTN
-              </span>
-
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-300">
-                The Noobs of Temple & Rift
-              </span>
-            </div>
-          </Link>
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070811]/90 backdrop-blur-xl">
+        <nav className="flex w-full items-center gap-4 px-6 py-4 lg:px-10 2xl:px-16">
+          <BrandLogo />
 
           <div className="hidden flex-1 items-center justify-center gap-2 lg:flex">
             {mainLinks.map((link) => (
@@ -154,9 +171,9 @@ export default function NavbarClient({
                 type="button"
                 onClick={() => setIsMoreOpen((value) => !value)}
                 aria-expanded={isMoreOpen}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                   moreLinks.some((link) => link.href === pathname)
-                    ? "bg-indigo-500/20 text-indigo-300"
+                    ? "bg-violet-500/20 text-violet-200"
                     : "text-gray-300 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -164,12 +181,12 @@ export default function NavbarClient({
               </button>
 
               {isMoreOpen && (
-                <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-white/10 bg-[#111827] p-2 shadow-2xl">
+                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/10 bg-[#11121d] p-2 shadow-2xl shadow-black/40">
                   {moreLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition hover:bg-white/10 hover:text-white"
+                      className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -183,7 +200,7 @@ export default function NavbarClient({
             {isAdmin && (
               <Link
                 href="/admin"
-                className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
               >
                 Admin
               </Link>
@@ -194,7 +211,7 @@ export default function NavbarClient({
                 <button
                   type="button"
                   onClick={() => setIsProfileOpen((value) => !value)}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10"
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition hover:bg-white/10"
                 >
                   {userImage ? (
                     <Image
@@ -205,8 +222,8 @@ export default function NavbarClient({
                       className="rounded-full"
                     />
                   ) : (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-black text-indigo-300">
-                      RTN
+                    <span className="grid h-8 w-8 place-items-center rounded-full bg-violet-500/15">
+                      <AscendraMark small />
                     </span>
                   )}
 
@@ -216,8 +233,8 @@ export default function NavbarClient({
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-3 w-64 rounded-2xl border border-white/10 bg-[#111827] p-3 shadow-2xl">
-                    <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 p-3">
+                  <div className="absolute right-0 mt-3 w-64 rounded-2xl border border-white/10 bg-[#11121d] p-3 shadow-2xl shadow-black/40">
+                    <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/[0.04] p-3">
                       {userImage ? (
                         <Image
                           src={userImage}
@@ -227,14 +244,14 @@ export default function NavbarClient({
                           className="rounded-full"
                         />
                       ) : (
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-black text-indigo-300">
-                          RTN
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-violet-500/15">
+                          <AscendraMark small />
                         </span>
                       )}
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-white">
-                          {userName || "RTN Player"}
+                          {userName || "Ascendra Player"}
                         </p>
                         <p className="text-xs text-gray-400">Player profile</p>
                       </div>
@@ -242,7 +259,7 @@ export default function NavbarClient({
 
                     <Link
                       href="/profile"
-                      className="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition hover:bg-white/10 hover:text-white"
+                      className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
                     >
                       View Profile
                     </Link>
@@ -250,7 +267,7 @@ export default function NavbarClient({
                     <button
                       type="button"
                       onClick={confirmLogout}
-                      className="mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
+                      className="mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-red-300 transition hover:bg-red-500/10"
                     >
                       Logout
                     </button>
@@ -260,7 +277,7 @@ export default function NavbarClient({
             ) : (
               <Link
                 href="/login"
-                className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
               >
                 Login
               </Link>
@@ -270,7 +287,7 @@ export default function NavbarClient({
               href={discordInvite}
               target="_blank"
               rel="noreferrer"
-              className="rounded-xl bg-indigo-500 px-5 py-2 text-sm font-bold text-white transition hover:bg-indigo-400"
+              className="rounded-xl bg-violet-600 px-5 py-2 text-sm font-black text-white shadow-lg shadow-violet-950/30 transition hover:bg-violet-500"
             >
               Join Discord
             </a>
@@ -287,8 +304,8 @@ export default function NavbarClient({
         </nav>
 
         {isMenuOpen && (
-          <div className="border-t border-white/10 bg-[#0b0f1a] px-6 py-5 lg:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2">
+          <div className="border-t border-white/10 bg-[#070811] px-6 py-5 lg:hidden">
+            <div className="grid gap-2">
               {[...mainLinks, ...moreLinks].map((link) => (
                 <NavLink
                   key={link.href}
@@ -314,7 +331,7 @@ export default function NavbarClient({
                     <Link
                       href="/profile"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center"
+                      className="flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-center"
                     >
                       {userImage ? (
                         <Image
@@ -325,12 +342,10 @@ export default function NavbarClient({
                           className="rounded-full"
                         />
                       ) : (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-black text-indigo-300">
-                          RTN
-                        </span>
+                        <AscendraMark small />
                       )}
 
-                      <span className="text-sm font-semibold text-gray-200">
+                      <span className="text-sm font-bold text-gray-200">
                         Profile
                       </span>
                     </Link>
@@ -357,7 +372,7 @@ export default function NavbarClient({
                   href={discordInvite}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-xl bg-indigo-500 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-indigo-400"
+                  className="rounded-xl bg-violet-600 px-4 py-3 text-center text-sm font-black text-white transition hover:bg-violet-500"
                 >
                   Join Discord
                 </a>
@@ -368,14 +383,14 @@ export default function NavbarClient({
       </header>
 
       {isLogoutConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111827] p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-6">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#11121d] p-6 shadow-2xl">
             <h2 className="mb-3 text-2xl font-black text-white">
-              Confirm Logout
+              Confirm logout
             </h2>
 
             <p className="mb-6 leading-7 text-gray-300">
-              Are you sure you want to log out of your RTN account?
+              Are you sure you want to log out of your Ascendra account?
             </p>
 
             <div className="grid gap-3 sm:flex sm:justify-end">
@@ -392,7 +407,7 @@ export default function NavbarClient({
                 onClick={handleLogout}
                 className="rounded-xl bg-red-500 px-5 py-3 font-bold text-white transition hover:bg-red-400"
               >
-                Yes, Logout
+                Yes, logout
               </button>
             </div>
           </div>
