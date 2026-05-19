@@ -16,7 +16,7 @@ function StatusBadge({ status }: { status: string }) {
   const normalizedStatus = status.toLowerCase();
 
   const styles: Record<string, string> = {
-    registered: "border-cyan-400/25 bg-cyan-500/10 text-cyan-300",
+    registered: "border-violet-400/25 bg-violet-500/10 text-violet-200",
     approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
     rejected: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
@@ -95,15 +95,44 @@ export default async function AdminRegistrationList({
   error,
 }: AdminRegistrationListProps) {
   const registrations = await prisma.tournamentRegistration.findMany({
-    include: {
-      tournament: true,
-      registeredBy: true,
+    select: {
+      id: true,
+      status: true,
+      rejectionReason: true,
+      createdAt: true,
+      reviewedAt: true,
+      tournament: {
+        select: {
+          title: true,
+          date: true,
+        },
+      },
+      registeredBy: {
+        select: {
+          username: true,
+        },
+      },
       team: {
-        include: {
-          leader: true,
+        select: {
+          id: true,
+          name: true,
+          game: true,
+          leaderId: true,
+          leader: {
+            select: {
+              username: true,
+            },
+          },
           members: {
-            include: {
-              user: true,
+            select: {
+              id: true,
+              userId: true,
+              user: {
+                select: {
+                  username: true,
+                  discordId: true,
+                },
+              },
             },
             orderBy: {
               joinedAt: "asc",
@@ -125,7 +154,7 @@ export default async function AdminRegistrationList({
     cancelled: 3,
   };
 
-  const sortedRegistrations = registrations.sort((a, b) => {
+  const sortedRegistrations = [...registrations].sort((a, b) => {
     const statusA = priority[a.status] ?? 10;
     const statusB = priority[b.status] ?? 10;
 
@@ -167,8 +196,7 @@ export default async function AdminRegistrationList({
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            Review team registrations, approve valid teams, reject with a clear
-            reason, or cancel a registration when needed.
+            Review, approve, reject, or cancel team registrations.
           </p>
         </div>
 
