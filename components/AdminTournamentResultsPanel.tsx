@@ -39,7 +39,7 @@ function SummaryCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+    <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
       <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
         {label}
       </p>
@@ -60,15 +60,15 @@ function PointsPresetCard({
 }) {
   return (
     <div
-      className={`rounded-xl border px-4 py-3 ${
+      className={`rounded-2xl border px-4 py-3 ${
         highlight
-          ? "border-green-500/20 bg-green-500/10"
-          : "border-white/10 bg-black/20"
+          ? "border-emerald-400/25 bg-emerald-500/10"
+          : "border-white/10 bg-black/25"
       }`}
     >
       <p
         className={`text-xs font-black uppercase tracking-[0.14em] ${
-          highlight ? "text-green-300" : "text-gray-500"
+          highlight ? "text-emerald-300" : "text-gray-500"
         }`}
       >
         {label}
@@ -84,10 +84,10 @@ function PlacementBadge({ placement }: { placement: number }) {
 
   return (
     <span
-      className={`grid h-11 w-11 place-items-center rounded-xl border text-lg font-black ${
+      className={`grid h-11 w-11 place-items-center rounded-2xl border text-lg font-black ${
         isTopThree
-          ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-300"
-          : "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+          ? "border-yellow-400/25 bg-yellow-500/10 text-yellow-300"
+          : "border-violet-400/25 bg-violet-500/10 text-violet-200"
       }`}
     >
       #{placement}
@@ -116,9 +116,9 @@ export default function AdminTournamentResultsPanel({
       : null;
 
   return (
-    <section className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+    <section className="overflow-hidden rounded-3xl border border-white/10 bg-black/25">
       <div className="border-b border-white/10 bg-white/[0.03] px-5 py-5">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
           Results
         </p>
 
@@ -142,10 +142,10 @@ export default function AdminTournamentResultsPanel({
           <SummaryCard label="Awarded points" value={totalPoints} />
         </div>
 
-        <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
           <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                 Points presets
               </p>
 
@@ -168,9 +168,9 @@ export default function AdminTournamentResultsPanel({
           </div>
         </section>
 
-        <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
           {eligibleRegistrations.length === 0 ? (
-            <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-gray-400">
+            <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-gray-400">
               No eligible teams yet. Register or approve teams before adding
               results.
             </div>
@@ -182,9 +182,9 @@ export default function AdminTournamentResultsPanel({
           )}
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
           <div className="border-b border-white/10 px-4 py-3">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
               Saved results
             </p>
           </div>
@@ -198,7 +198,7 @@ export default function AdminTournamentResultsPanel({
               {results.map((result) => (
                 <article
                   key={result.id}
-                  className="grid gap-4 rounded-xl border border-white/10 bg-black/20 p-4 lg:grid-cols-[70px_minmax(0,1fr)_100px_140px] lg:items-center"
+                  className="grid gap-4 rounded-2xl border border-white/10 bg-black/25 p-4 lg:grid-cols-[70px_minmax(0,1fr)_100px_140px] lg:items-center"
                 >
                   <PlacementBadge placement={result.placement} />
 
@@ -212,7 +212,7 @@ export default function AdminTournamentResultsPanel({
                     )}
                   </div>
 
-                  <p className="text-sm font-black text-green-300">
+                  <p className="text-sm font-black text-emerald-300">
                     {result.points} pts
                   </p>
 
