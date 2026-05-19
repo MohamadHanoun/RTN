@@ -14,12 +14,15 @@ export default async function AdminRoleList() {
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   });
 
+  const activeRoles = roles.filter((role) => role.isActive).length;
+  const hiddenRoles = roles.length - activeRoles;
+
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-16">
+    <section className="grid gap-6">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">
-            Manage Roles
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+            Manage roles
           </p>
 
           <h2 className="mt-2 text-3xl font-black text-white">Roles list</h2>
@@ -30,12 +33,29 @@ export default async function AdminRoleList() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-            Total roles
-          </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-2xl border border-white/10 bg-black/25 px-5 py-4">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
+              Total
+            </p>
+            <p className="mt-1 text-2xl font-black text-white">
+              {roles.length}
+            </p>
+          </div>
 
-          <p className="mt-1 text-2xl font-black text-white">{roles.length}</p>
+          <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-5 py-4">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-300">
+              Active
+            </p>
+            <p className="mt-1 text-2xl font-black text-white">{activeRoles}</p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/25 px-5 py-4">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
+              Hidden
+            </p>
+            <p className="mt-1 text-2xl font-black text-white">{hiddenRoles}</p>
+          </div>
         </div>
       </div>
 
