@@ -24,7 +24,7 @@ function StatusBadge({ active }: { active: boolean }) {
     <span
       className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-black ${
         active
-          ? "border-green-500/20 bg-green-500/10 text-green-300"
+          ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
           : "border-white/10 bg-white/5 text-gray-300"
       }`}
     >
@@ -34,7 +34,7 @@ function StatusBadge({ active }: { active: boolean }) {
 }
 
 function inputClass() {
-  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-400";
+  return "rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-violet-400";
 }
 
 function moveItem(items: RuleItem[], fromIndex: number, toIndex: number) {
@@ -137,7 +137,7 @@ export default function AdminRuleDragList({
 
   if (rules.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-gray-300">
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-gray-300 shadow-2xl shadow-black/20">
         No rules found.
       </div>
     );
@@ -145,7 +145,7 @@ export default function AdminRuleDragList({
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-5 py-4 shadow-2xl shadow-black/20">
         <div>
           <p className="text-sm font-black text-white">Drag to reorder</p>
           <p className="mt-1 text-sm text-gray-400">
@@ -155,10 +155,10 @@ export default function AdminRuleDragList({
 
         {notice && (
           <div
-            className={`rounded-xl border px-4 py-3 text-sm font-bold ${
+            className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
               notice.ok
-                ? "border-green-500/20 bg-green-500/10 text-green-300"
-                : "border-red-500/20 bg-red-500/10 text-red-300"
+                ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+                : "border-red-400/25 bg-red-500/10 text-red-300"
             }`}
           >
             {notice.message}
@@ -166,14 +166,14 @@ export default function AdminRuleDragList({
         )}
 
         {pending && (
-          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-300">
+          <div className="rounded-2xl border border-violet-400/25 bg-violet-500/10 px-4 py-3 text-sm font-bold text-violet-200">
             Saving order...
           </div>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-        <div className="hidden border-b border-white/10 bg-white/[0.03] px-5 py-4 text-xs font-black uppercase tracking-[0.12em] text-gray-400 lg:grid lg:grid-cols-[96px_minmax(0,1fr)_220px] lg:gap-5">
+      <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
+        <div className="hidden border-b border-white/10 bg-white/[0.03] px-5 py-4 text-xs font-black uppercase tracking-[0.12em] text-gray-500 lg:grid lg:grid-cols-[96px_minmax(0,1fr)_220px] lg:gap-5">
           <span>Order</span>
           <span>Rule text</span>
           <span>Actions</span>
@@ -198,11 +198,13 @@ export default function AdminRuleDragList({
                 onDragEnd={handleDragEnd}
                 className={`grid gap-5 p-5 transition lg:grid-cols-[96px_minmax(0,1fr)_220px] lg:items-start ${
                   isDragging ? "opacity-50" : ""
-                } ${isDragTarget ? "bg-cyan-400/10" : "hover:bg-white/[0.03]"}`}
+                } ${
+                  isDragTarget ? "bg-violet-500/10" : "hover:bg-white/[0.03]"
+                }`}
               >
                 <div className="flex items-center justify-between gap-4 lg:grid lg:gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-lg font-black text-cyan-200">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-violet-400/25 bg-violet-500/10 text-lg font-black text-violet-200">
                       {position}
                     </span>
 
@@ -220,7 +222,7 @@ export default function AdminRuleDragList({
                   <button
                     type="button"
                     aria-label="Drag rule"
-                    className="grid h-10 w-10 cursor-grab place-items-center rounded-xl border border-white/10 bg-black/20 text-lg font-black text-gray-300 transition hover:border-cyan-400/40 hover:text-cyan-200 active:cursor-grabbing"
+                    className="grid h-10 w-10 cursor-grab place-items-center rounded-xl border border-white/10 bg-black/25 text-lg font-black text-gray-300 transition hover:border-violet-400/40 hover:text-violet-200 active:cursor-grabbing"
                   >
                     ≡
                   </button>
