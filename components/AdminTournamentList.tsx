@@ -10,7 +10,7 @@ function StatusBadge({ label, status }: { label: string; status: string }) {
     upcoming: "border-yellow-400/25 bg-yellow-500/10 text-yellow-300",
     closed: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
-    registered: "border-cyan-400/25 bg-cyan-500/10 text-cyan-300",
+    registered: "border-violet-400/25 bg-violet-500/10 text-violet-200",
     approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
     rejected: "border-red-400/25 bg-red-500/10 text-red-300",
   };
@@ -84,7 +84,16 @@ function ProgressBar({
 
 export default async function AdminTournamentList() {
   const tournaments = await prisma.tournament.findMany({
-    include: {
+    select: {
+      id: true,
+      title: true,
+      game: true,
+      date: true,
+      imageUrl: true,
+      maxSlots: true,
+      status: true,
+      registrationStatus: true,
+      createdAt: true,
       registrations: {
         where: {
           status: {
@@ -177,6 +186,7 @@ export default async function AdminTournamentList() {
                 tournament.maxSlots - usedSlots,
                 0,
               );
+
               const tournamentImage = getTournamentImageUrl(
                 tournament.game,
                 tournament.imageUrl,
