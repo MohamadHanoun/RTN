@@ -7,11 +7,10 @@ import Navbar from "@/components/Navbar";
 import TeamLeaderboardTable from "@/components/TeamLeaderboardTable";
 import type { LeaderboardTeam, LeaderboardUser } from "@/data/leaderboard";
 import { prisma } from "@/lib/prisma";
-import { getGameImageUrl } from "@/lib/tournamentImages";
 
 export const metadata: Metadata = {
   title: "Leaderboard | Ascendra",
-  description: "View Ascendra tournament points and player standings.",
+  description: "Ascendra tournament points and standings.",
 };
 
 export const runtime = "nodejs";
@@ -25,18 +24,6 @@ type LeaderboardPageProps = {
 };
 
 const games = ["Overall", "Valorant", "League of Legends", "CS2", "Dota2"];
-
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
-        {label}
-      </p>
-
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
-    </div>
-  );
-}
 
 function buildLeaderboardHref(game: string, type: "players" | "teams") {
   const params = new URLSearchParams();
@@ -54,151 +41,38 @@ function buildLeaderboardHref(game: string, type: "players" | "teams") {
   return query ? `/leaderboard?${query}` : "/leaderboard";
 }
 
-function RankingTypeFilter({
-  selectedGame,
-  selectedType,
+function FilterButton({
+  href,
+  label,
+  active,
 }: {
-  selectedGame: string;
-  selectedType: "players" | "teams";
+  href: string;
+  label: string;
+  active: boolean;
 }) {
   return (
-    <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-2xl shadow-black/20 sm:grid-cols-2">
-      {[
-        {
-          label: "Players",
-          value: "players" as const,
-          description: "Rank players by tournament points.",
-        },
-        {
-          label: "Teams",
-          value: "teams" as const,
-          description: "Rank teams by tournament points.",
-        },
-      ].map((item) => {
-        const isActive = selectedType === item.value;
-
-        return (
-          <Link
-            key={item.value}
-            href={buildLeaderboardHref(selectedGame, item.value)}
-            className={`rounded-2xl border px-5 py-4 transition ${
-              isActive
-                ? "border-violet-400/35 bg-violet-500/15 text-white shadow-lg shadow-violet-950/20"
-                : "border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <p className="font-black">{item.label}</p>
-            <p className="mt-1 text-sm text-gray-500">{item.description}</p>
-          </Link>
-        );
-      })}
-    </div>
+    <Link
+      href={href}
+      className={`rounded-xl border px-4 py-2 text-sm font-black transition ${
+        active
+          ? "border-violet-400/35 bg-violet-500/15 text-white"
+          : "border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10 hover:text-white"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }
 
-function GameFilter({
-  selectedGame,
-  selectedType,
-}: {
-  selectedGame: string;
-  selectedType: "players" | "teams";
-}) {
+function StatRow({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-      {games.map((game) => {
-        const isActive = selectedGame === game;
+    <div className="grid gap-2 rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
+        {label}
+      </p>
 
-        return (
-          <Link
-            key={game}
-            href={buildLeaderboardHref(game, selectedType)}
-            className={`group overflow-hidden rounded-3xl border shadow-2xl shadow-black/20 transition ${
-              isActive
-                ? "border-violet-400/35 bg-violet-500/10"
-                : "border-white/10 bg-white/[0.04] hover:border-violet-400/30 hover:bg-white/[0.06]"
-            }`}
-          >
-            <div
-              className="min-h-28 bg-cover bg-center"
-              style={{
-                backgroundImage: `linear-gradient(to bottom, rgba(7,8,17,0.08), rgba(7,8,17,0.86)), url("${getGameImageUrl(
-                  game,
-                )}")`,
-              }}
-            />
-
-            <div className="p-4">
-              <p
-                className={`text-sm font-black ${
-                  isActive ? "text-white" : "text-gray-300"
-                }`}
-              >
-                {game}
-              </p>
-
-              <p className="mt-1 text-xs text-gray-500">
-                {isActive ? "Selected ranking" : "View ranking"}
-              </p>
-            </div>
-          </Link>
-        );
-      })}
+      <p className="truncate text-lg font-black text-white">{value}</p>
     </div>
-  );
-}
-
-function SelectedGameHero({
-  selectedGame,
-  selectedType,
-  rankedItems,
-  totalPoints,
-}: {
-  selectedGame: string;
-  selectedType: "players" | "teams";
-  rankedItems: number;
-  totalPoints: number;
-}) {
-  const itemLabel = selectedType === "players" ? "player" : "team";
-
-  return (
-    <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-      <div
-        className="relative min-h-72 bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(to right, rgba(7,8,17,0.96), rgba(7,8,17,0.72), rgba(7,8,17,0.18)), url("${getGameImageUrl(
-            selectedGame,
-          )}")`,
-        }}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_26%)]" />
-
-        <div className="relative z-10 flex min-h-72 max-w-3xl flex-col justify-end p-7">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
-            {selectedGame === "Overall" ? "Overall ranking" : "Game ranking"}
-          </p>
-
-          <h2 className="mt-3 text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
-            {selectedGame}
-          </h2>
-
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-300">
-            Tournament points are calculated from official Ascendra tournament
-            results saved by admins.
-          </p>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            <span className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-black text-white">
-              {rankedItems} ranked {itemLabel}
-              {rankedItems === 1 ? "" : "s"}
-            </span>
-
-            <span className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-300">
-              {totalPoints} total points
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -206,11 +80,14 @@ async function getPlayerLeaderboard(
   selectedGame: string,
 ): Promise<LeaderboardUser[]> {
   const users = await prisma.user.findMany({
-    include: {
+    select: {
+      id: true,
+      username: true,
+      role: true,
       teamMemberships: {
-        include: {
+        select: {
           team: {
-            include: {
+            select: {
               results: {
                 select: {
                   id: true,
@@ -286,7 +163,10 @@ async function getTeamLeaderboard(
   selectedGame: string,
 ): Promise<LeaderboardTeam[]> {
   const teams = await prisma.team.findMany({
-    include: {
+    select: {
+      id: true,
+      name: true,
+      game: true,
       leader: {
         select: {
           username: true,
@@ -401,95 +281,84 @@ export default async function LeaderboardPage({
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
 
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative overflow-hidden border-b border-white/10">
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-45"
-            style={{
-              backgroundImage: `url("${getGameImageUrl(selectedGame)}")`,
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070811]/70 via-[#070811]/88 to-[#070811]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
-
-          <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
-            <p className="mb-5 text-sm font-black uppercase tracking-[0.22em] text-violet-300">
-              Ascendra leaderboard
+        <section className="border-b border-white/10">
+          <div className="mx-auto max-w-[1680px] px-6 py-14 lg:px-10 2xl:px-14">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-violet-300">
+              Competitive
             </p>
 
-            <h1 className="max-w-5xl text-5xl font-black uppercase leading-[1.02] tracking-tight text-white md:text-7xl">
-              Tournament points standings.
+            <h1 className="text-5xl font-black uppercase tracking-tight text-white md:text-6xl">
+              Leaderboard
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-300">
-              View players and teams ranked by official tournament points from
-              saved Ascendra tournament results.
+            <p className="mt-4 max-w-2xl text-base leading-7 text-gray-400">
+              Rankings based on tournament points.
             </p>
           </div>
-
-          <svg
-            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
-            viewBox="0 0 1440 120"
-            fill="currentColor"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
-          </svg>
         </section>
 
-        <section className="mx-auto grid max-w-[1440px] gap-6 px-6 py-12 lg:px-10">
-          <RankingTypeFilter
-            selectedGame={selectedGame}
-            selectedType={selectedType}
-          />
+        <section className="mx-auto grid max-w-[1680px] gap-8 px-6 py-10 lg:px-10 2xl:px-14">
+          <section className="grid gap-5 rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20">
+            <div className="flex flex-wrap gap-2">
+              <FilterButton
+                href={buildLeaderboardHref(selectedGame, "players")}
+                label="Players"
+                active={selectedType === "players"}
+              />
+              <FilterButton
+                href={buildLeaderboardHref(selectedGame, "teams")}
+                label="Teams"
+                active={selectedType === "teams"}
+              />
+            </div>
 
-          <GameFilter selectedGame={selectedGame} selectedType={selectedType} />
+            <div className="flex flex-wrap gap-2">
+              {games.map((game) => (
+                <FilterButton
+                  key={game}
+                  href={buildLeaderboardHref(game, selectedType)}
+                  label={game}
+                  active={selectedGame === game}
+                />
+              ))}
+            </div>
+          </section>
 
-          <SelectedGameHero
-            selectedGame={selectedGame}
-            selectedType={selectedType}
-            rankedItems={activeLeaderboard.length}
-            totalPoints={totalPoints}
-          />
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <StatRow
+              label={
+                selectedType === "players" ? "Ranked players" : "Ranked teams"
+              }
+              value={activeLeaderboard.length}
+            />
+            <StatRow label="Total points" value={totalPoints} />
+            <StatRow label="Total results" value={totalResults} />
+            <StatRow
+              label={selectedType === "players" ? "Top player" : "Top team"}
+              value={topItem}
+            />
+          </section>
 
           {activeLeaderboard.length > 0 ? (
-            <>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <StatCard
-                  label={
-                    selectedType === "players"
-                      ? "Ranked players"
-                      : "Ranked teams"
-                  }
-                  value={activeLeaderboard.length}
-                />
-                <StatCard label="Total points" value={totalPoints} />
-                <StatCard label="Total results" value={totalResults} />
-                <StatCard
-                  label={selectedType === "players" ? "Top player" : "Top team"}
-                  value={topItem}
-                />
-              </div>
-
-              {selectedType === "players" ? (
-                <LeaderboardTable users={playerLeaderboard} />
-              ) : (
-                <TeamLeaderboardTable teams={teamLeaderboard} />
-              )}
-            </>
+            selectedType === "players" ? (
+              <LeaderboardTable users={playerLeaderboard} />
+            ) : (
+              <TeamLeaderboardTable teams={teamLeaderboard} />
+            )
           ) : (
             <EmptyState
               title="No tournament points yet"
               description={
                 selectedGame === "Overall"
                   ? selectedType === "players"
-                    ? "Player rankings will appear here when tournament results are added."
-                    : "Team rankings will appear here when tournament results are added."
-                  : `No tournament points have been awarded for ${selectedGame} yet.`
+                    ? "Player rankings will appear here when results are added."
+                    : "Team rankings will appear here when results are added."
+                  : `No points have been awarded for ${selectedGame} yet.`
               }
               actionLabel="View tournaments"
               actionHref="/tournaments"
