@@ -59,6 +59,14 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   );
 }
 
+function InfoLine({ label, value }: { label: string; value: string | number }) {
+  return (
+    <p className="text-sm text-gray-400">
+      {label}: <span className="font-black text-white">{value}</span>
+    </p>
+  );
+}
+
 function formatDate(date: Date | null) {
   if (!date) {
     return "Not reviewed";
@@ -128,6 +136,10 @@ export default async function AdminRegistrationList({
     (registration) => registration.status === "rejected",
   ).length;
 
+  const cancelledCount = registrations.filter(
+    (registration) => registration.status === "cancelled",
+  ).length;
+
   return (
     <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-16">
       <ProfileNotice message={message} error={error} />
@@ -148,11 +160,12 @@ export default async function AdminRegistrationList({
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <StatCard label="Total" value={registrations.length} />
           <StatCard label="Pending" value={pendingCount} />
           <StatCard label="Approved" value={approvedCount} />
           <StatCard label="Rejected" value={rejectedCount} />
+          <StatCard label="Cancelled" value={cancelledCount} />
         </div>
       </div>
 
@@ -161,169 +174,169 @@ export default async function AdminRegistrationList({
           No tournament registrations found.
         </section>
       ) : (
-        <section className="grid gap-5">
-          {sortedRegistrations.map((registration) => {
-            const isPending = registration.status === "registered";
-            const canApprove = registration.status !== "approved";
-            const canReject = registration.status !== "rejected";
-            const canCancel = registration.status !== "cancelled";
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+          <div className="hidden border-b border-white/10 bg-black/20 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-400 xl:grid xl:grid-cols-[minmax(0,1fr)_180px_160px_150px_140px] xl:gap-5">
+            <span>Team</span>
+            <span>Tournament</span>
+            <span>Status</span>
+            <span>Players</span>
+            <span>Actions</span>
+          </div>
 
-            return (
-              <article
-                key={registration.id}
-                className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
-              >
-                <div className="border-b border-white/10 bg-white/[0.03] p-5">
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="text-2xl font-black text-white">
+          <div className="divide-y divide-white/10">
+            {sortedRegistrations.map((registration) => {
+              const canApprove = registration.status !== "approved";
+              const canReject = registration.status !== "rejected";
+              const canCancel = registration.status !== "cancelled";
+
+              return (
+                <article
+                  key={registration.id}
+                  className="grid gap-4 p-5 transition hover:bg-white/[0.035]"
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_180px_160px_150px_140px] xl:items-center xl:gap-5">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="truncate text-xl font-black text-white">
                           {registration.team.name}
                         </h2>
 
-                        <StatusBadge status={registration.status} />
+                        <span className="inline-flex rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-300">
+                          {registration.team.game}
+                        </span>
                       </div>
 
-                      <p className="mt-2 text-sm leading-6 text-gray-400">
-                        {registration.tournament.title} ·{" "}
-                        {registration.tournament.game}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <StatCard
-                        label="Team size"
-                        value={registration.team.members.length}
-                      />
-                      <StatCard
-                        label="Slots"
-                        value={registration.tournament.maxSlots}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)_230px] xl:items-start">
-                  <section className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                      Registration info
-                    </p>
-
-                    <div className="mt-4 grid gap-3 text-sm text-gray-300">
-                      <p>
-                        Registered by:{" "}
-                        <span className="font-black text-white">
-                          {registration.registeredBy.username}
-                        </span>
+                      <p className="mt-1 text-sm text-gray-400">
+                        Registered by {registration.registeredBy.username}
                       </p>
 
-                      <p>
-                        Registered at:{" "}
-                        <span className="font-black text-white">
-                          {formatDate(registration.createdAt)}
-                        </span>
-                      </p>
-
-                      <p>
-                        Reviewed at:{" "}
-                        <span className="font-black text-white">
-                          {formatDate(registration.reviewedAt)}
-                        </span>
-                      </p>
-
-                      <p>
-                        Tournament date:{" "}
-                        <span className="font-black text-white">
-                          {registration.tournament.date}
-                        </span>
-                      </p>
-                    </div>
-
-                    {registration.rejectionReason && (
-                      <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
-                        <p className="font-black text-red-300">
-                          Rejection reason
+                      {registration.rejectionReason && (
+                        <p className="mt-2 text-sm text-red-300">
+                          Rejected: {registration.rejectionReason}
                         </p>
-
-                        <p className="mt-1 text-sm leading-6 text-gray-300">
-                          {registration.rejectionReason}
-                        </p>
-                      </div>
-                    )}
-                  </section>
-
-                  <section className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                      Team players
-                    </p>
-
-                    <div className="mt-4 grid gap-2">
-                      {registration.team.members.length === 0 ? (
-                        <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-gray-400">
-                          No players in this team.
-                        </div>
-                      ) : (
-                        registration.team.members.map((member) => {
-                          const isLeader =
-                            member.userId === registration.team.leaderId;
-
-                          return (
-                            <div
-                              key={member.id}
-                              className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-                            >
-                              <div>
-                                <p className="font-black text-white">
-                                  {member.user.username}
-                                </p>
-
-                                <p className="mt-1 break-all text-xs text-gray-500">
-                                  {member.user.discordId}
-                                </p>
-                              </div>
-
-                              <RoleBadge leader={isLeader} />
-                            </div>
-                          );
-                        })
                       )}
                     </div>
-                  </section>
 
-                  <aside className="grid content-start gap-4">
-                    <section className="rounded-xl border border-white/10 bg-black/20 p-4">
-                      <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
-                        Review actions
+                    <div>
+                      <p className="font-black text-white">
+                        {registration.tournament.title}
                       </p>
 
-                      <div className="mt-3 grid gap-2">
-                        {canApprove ? (
-                          <InlineAdminRegistrationForm
-                            action={approveRegistrationInline}
-                            buttonLabel={
-                              isPending ? "Approve registration" : "Approve"
-                            }
-                            pendingLabel="Approving..."
-                            variant="success"
-                          >
-                            <input
-                              type="hidden"
-                              name="registrationId"
-                              value={registration.id}
-                            />
-                          </InlineAdminRegistrationForm>
-                        ) : (
-                          <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-center text-sm font-black text-green-300">
-                            Approved
-                          </div>
-                        )}
+                      <p className="mt-1 text-sm text-gray-400">
+                        {registration.tournament.date}
+                      </p>
+                    </div>
+
+                    <StatusBadge status={registration.status} />
+
+                    <p className="text-sm text-gray-300">
+                      <span className="font-black text-white">
+                        {registration.team.members.length}
+                      </span>{" "}
+                      player
+                      {registration.team.members.length === 1 ? "" : "s"}
+                    </p>
+
+                    <div className="grid gap-2">
+                      {canApprove ? (
+                        <InlineAdminRegistrationForm
+                          action={approveRegistrationInline}
+                          buttonLabel="Approve"
+                          pendingLabel="Approving..."
+                          variant="success"
+                        >
+                          <input
+                            type="hidden"
+                            name="registrationId"
+                            value={registration.id}
+                          />
+                        </InlineAdminRegistrationForm>
+                      ) : (
+                        <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-center text-sm font-black text-green-300">
+                          Approved
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <details className="rounded-xl border border-white/10 bg-black/20">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-black text-gray-300 transition hover:text-white">
+                      Review details and actions
+                    </summary>
+
+                    <div className="grid gap-5 border-t border-white/10 p-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_230px] lg:items-start">
+                      <section>
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                          Registration info
+                        </p>
+
+                        <div className="mt-4 grid gap-2">
+                          <InfoLine
+                            label="Registered at"
+                            value={formatDate(registration.createdAt)}
+                          />
+                          <InfoLine
+                            label="Reviewed at"
+                            value={formatDate(registration.reviewedAt)}
+                          />
+                          <InfoLine
+                            label="Tournament date"
+                            value={registration.tournament.date}
+                          />
+                          <InfoLine
+                            label="Team leader"
+                            value={registration.team.leader.username}
+                          />
+                        </div>
+                      </section>
+
+                      <section>
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                          Team players
+                        </p>
+
+                        <div className="mt-4 grid gap-2">
+                          {registration.team.members.length === 0 ? (
+                            <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-gray-400">
+                              No players in this team.
+                            </div>
+                          ) : (
+                            registration.team.members.map((member) => {
+                              const isLeader =
+                                member.userId === registration.team.leaderId;
+
+                              return (
+                                <div
+                                  key={member.id}
+                                  className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                                >
+                                  <div>
+                                    <p className="font-black text-white">
+                                      {member.user.username}
+                                    </p>
+
+                                    <p className="mt-1 break-all text-xs text-gray-500">
+                                      {member.user.discordId}
+                                    </p>
+                                  </div>
+
+                                  <RoleBadge leader={isLeader} />
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </section>
+
+                      <aside className="grid content-start gap-3">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-400">
+                          Actions
+                        </p>
 
                         {canReject && (
                           <InlineAdminRegistrationForm
                             action={rejectRegistrationInline}
-                            buttonLabel={
-                              isPending ? "Reject registration" : "Reject"
-                            }
+                            buttonLabel="Reject"
                             pendingLabel="Rejecting..."
                             variant="danger"
                             confirmTitle="Reject registration?"
@@ -341,20 +354,8 @@ export default async function AdminRegistrationList({
                             />
                           </InlineAdminRegistrationForm>
                         )}
-                      </div>
-                    </section>
 
-                    {canCancel && (
-                      <section className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
-                        <p className="text-xs font-black uppercase tracking-[0.14em] text-red-300">
-                          Danger zone
-                        </p>
-
-                        <p className="mt-2 text-sm leading-6 text-gray-400">
-                          Cancel this registration without deleting the team.
-                        </p>
-
-                        <div className="mt-3">
+                        {canCancel && (
                           <InlineAdminRegistrationForm
                             action={cancelRegistrationInline}
                             buttonLabel="Cancel registration"
@@ -370,14 +371,14 @@ export default async function AdminRegistrationList({
                               value={registration.id}
                             />
                           </InlineAdminRegistrationForm>
-                        </div>
-                      </section>
-                    )}
-                  </aside>
-                </div>
-              </article>
-            );
-          })}
+                        )}
+                      </aside>
+                    </div>
+                  </details>
+                </article>
+              );
+            })}
+          </div>
         </section>
       )}
     </section>
