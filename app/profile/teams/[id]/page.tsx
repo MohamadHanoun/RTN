@@ -9,11 +9,13 @@ import {
   removeTeamMemberInline,
   updateTeamInline,
 } from "@/actions/teamInlineActions";
+import CustomSelect from "@/components/CustomSelect";
 import Footer from "@/components/Footer";
 import InlineTeamActionForm from "@/components/InlineTeamActionForm";
 import Navbar from "@/components/Navbar";
 import ProfileNotice from "@/components/ProfileNotice";
 import { prisma } from "@/lib/prisma";
+import { getGameImageUrl } from "@/lib/tournamentImages";
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +88,7 @@ function TeamStatCard({
 
 function PanelHeader({ label, title }: { label: string; title: string }) {
   return (
-    <div className="border-b border-white/10 bg-white/[0.03] px-6 py-5">
+    <div className="bg-white/[0.03] px-6 py-5">
       <p className="text-sm font-black uppercase tracking-[0.16em] text-violet-300">
         {label}
       </p>
@@ -181,18 +183,28 @@ export default async function TeamDetailsPage({
       ? Math.min(...team.results.map((result) => result.placement))
       : null;
 
+  const teamImage = getGameImageUrl(team.game);
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#090b15_42%,#070811)]" />
 
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative overflow-hidden border-b border-white/10">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(7,8,17,0.98),rgba(7,8,17,0.82),rgba(7,8,17,0.98)),url('/images/backgrounds/community-hero.webp')] bg-cover bg-center opacity-70" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
+        <section className="relative min-h-[560px] overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url("${teamImage}")`,
+            }}
+          />
 
-          <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-14 lg:px-10">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,8,17,0.90)_0%,rgba(7,8,17,0.58)_44%,rgba(7,8,17,0.76)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.22),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.08),transparent_30%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent via-[#070811]/75 to-[#070811]" />
+
+          <div className="relative z-10 mx-auto max-w-[1440px] px-6 pb-32 pt-16 lg:px-10">
             <ProfileNotice
               message={noticeParams.message}
               error={noticeParams.error}
@@ -205,12 +217,12 @@ export default async function TeamDetailsPage({
               ← Back to profile
             </Link>
 
-            <section className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/30 backdrop-blur">
+            <section className="mt-8 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] shadow-2xl shadow-black/30 backdrop-blur">
               <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center">
                 <div>
                   <SmallLabel>Team management</SmallLabel>
 
-                  <h1 className="mt-2 text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
+                  <h1 className="mt-2 text-4xl font-black uppercase tracking-tight text-white md:text-6xl">
                     {team.name}
                   </h1>
 
@@ -267,19 +279,10 @@ export default async function TeamDetailsPage({
               </div>
             </section>
           </div>
-
-          <svg
-            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
-            viewBox="0 0 1440 120"
-            fill="currentColor"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
-          </svg>
         </section>
 
-        <section className="mx-auto grid max-w-[1440px] gap-8 px-6 py-12 lg:px-10">
-          <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
+        <section className="relative -mt-20 mx-auto grid max-w-[1440px] gap-8 px-6 pb-16 lg:px-10">
+          <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur">
             <PanelHeader label="Tournament history" title="Team results" />
 
             <div className="grid gap-4 p-6 md:grid-cols-3">
@@ -291,9 +294,13 @@ export default async function TeamDetailsPage({
               />
             </div>
 
-            {team.results.length > 0 && (
-              <div className="border-t border-white/10">
-                <div className="hidden border-b border-white/10 bg-black/20 px-6 py-4 text-xs font-black uppercase tracking-[0.12em] text-gray-500 lg:grid lg:grid-cols-[minmax(0,1fr)_160px_130px_130px]">
+            {team.results.length === 0 ? (
+              <div className="px-6 pb-6 text-sm text-gray-400">
+                No tournament results yet.
+              </div>
+            ) : (
+              <div>
+                <div className="hidden bg-white/[0.03] px-6 py-4 text-xs font-black uppercase tracking-[0.12em] text-gray-500 lg:grid lg:grid-cols-[minmax(0,1fr)_160px_130px_130px]">
                   <span>Tournament</span>
                   <span>Game</span>
                   <span>Placement</span>
@@ -344,7 +351,7 @@ export default async function TeamDetailsPage({
           </section>
 
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
+            <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur">
               <PanelHeader label="Team controls" title="Setup and actions" />
 
               <div className="grid gap-8 p-6">
@@ -380,18 +387,17 @@ export default async function TeamDetailsPage({
                             Game
                           </span>
 
-                          <select
+                          <CustomSelect
                             name="game"
                             required
+                            placeholder="Select game"
                             defaultValue={team.game}
-                            className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-violet-400"
-                          >
-                            {games.map((game) => (
-                              <option key={game} value={game}>
-                                {game}
-                              </option>
-                            ))}
-                          </select>
+                            options={games.map((game) => ({
+                              value: game,
+                              label: game,
+                              description: "Team game",
+                            }))}
+                          />
                         </label>
                       </div>
                     </InlineTeamActionForm>
@@ -403,7 +409,7 @@ export default async function TeamDetailsPage({
                 </section>
 
                 {isLeader && (
-                  <section className="border-t border-white/10 pt-6">
+                  <section className="pt-2">
                     <p className="mb-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500">
                       Invite player
                     </p>
@@ -432,7 +438,7 @@ export default async function TeamDetailsPage({
                 )}
 
                 {isLeader && canDelete && (
-                  <section className="border-t border-red-500/20 pt-6">
+                  <section className="pt-2">
                     <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-red-300">
                       Danger zone
                     </p>
@@ -463,8 +469,8 @@ export default async function TeamDetailsPage({
               </div>
             </section>
 
-            <aside className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-              <div className="border-b border-white/10 bg-white/[0.03] px-5 py-4">
+            <aside className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur">
+              <div className="bg-white/[0.03] px-5 py-4">
                 <SmallLabel>Players</SmallLabel>
 
                 <h2 className="mt-2 text-xl font-black text-white">
