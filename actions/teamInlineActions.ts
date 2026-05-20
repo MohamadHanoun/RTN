@@ -489,3 +489,77 @@ export async function leaveTeamInline(
 
   return success("You left the team.", `/profile?message=${message}`);
 }
+export async function transferTeamLeadershipInline(
+  formData: FormData,
+): Promise<TeamInlineActionResult> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return fail("Please login first.", "/login");
+  }
+
+  const teamId = getTeamId(formData);
+  const memberId = String(formData.get("memberId") || "").trim();
+
+  if (!teamId || !memberId) {
+    return fail("Team ID and member ID are required.");
+  }
+
+  const { team, error } = await getLeaderTeam(teamId, user.id);
+
+  if (!team) {
+    return fail(error || "Team was not found.");
+  }
+
+  const targetMember = await prisma.teamMember.findUnique({
+    where: {
+      id: memberId,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!targetMember || targetMember.teamId !== team.id) {
+    return fail("Team member was not found.");
+  }
+
+  if (targetMember.userId === user.id) {
+    return fail("You are already the team leader.");
+  }
+
+  await prisma.$transaction([
+    prisma.team.update({
+      where: {
+        id: team.id,
+      },
+      data: {
+        leaderId: targetMember.userId,
+      },
+    }),
+
+    prisma.teamMember.updateMany({
+      where: {
+        teamId: team.id,
+        userId: user.id,
+      },
+      data: {
+        role: "member",
+      },
+    }),
+
+    prisma.teamMember.update({
+      where: {
+        id: targetMember.id,
+      },
+      data: {
+        role: "leader",
+      },
+    }),
+  ]);
+
+  revalidatePath("/profile");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  return success(`Leadership transferred to ${targetMember.user.username}.`);
+}

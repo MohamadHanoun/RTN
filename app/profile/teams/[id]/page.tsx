@@ -8,6 +8,7 @@ import {
   invitePlayerToTeamInline,
   leaveTeamInline,
   removeTeamMemberInline,
+  transferTeamLeadershipInline,
   updateTeamInline,
 } from "@/actions/teamInlineActions";
 import CustomSelect from "@/components/CustomSelect";
@@ -532,26 +533,49 @@ export default async function TeamDetailsPage({
                         />
 
                         {isLeader && !isMemberLeader ? (
-                          <InlineTeamActionForm
-                            action={removeTeamMemberInline}
-                            buttonLabel="Remove"
-                            pendingLabel="Removing..."
-                            variant="danger"
-                            confirmTitle="Remove player?"
-                            confirmDescription={`Are you sure you want to remove ${member.user.username} from this team?`}
-                            confirmLabel="Remove player"
-                          >
-                            <input
-                              type="hidden"
-                              name="teamId"
-                              value={team.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="memberId"
-                              value={member.id}
-                            />
-                          </InlineTeamActionForm>
+                          <div className="flex flex-wrap gap-2">
+                            <InlineTeamActionForm
+                              action={transferTeamLeadershipInline}
+                              buttonLabel="Transfer leader"
+                              pendingLabel="Transferring..."
+                              variant="secondary"
+                              confirmTitle="Transfer leadership?"
+                              confirmDescription={`Are you sure you want to make ${member.user.username} the new team leader? You will become a regular member.`}
+                              confirmLabel="Transfer leadership"
+                            >
+                              <input
+                                type="hidden"
+                                name="teamId"
+                                value={team.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="memberId"
+                                value={member.id}
+                              />
+                            </InlineTeamActionForm>
+
+                            <InlineTeamActionForm
+                              action={removeTeamMemberInline}
+                              buttonLabel="Remove"
+                              pendingLabel="Removing..."
+                              variant="danger"
+                              confirmTitle="Remove player?"
+                              confirmDescription={`Are you sure you want to remove ${member.user.username} from this team?`}
+                              confirmLabel="Remove player"
+                            >
+                              <input
+                                type="hidden"
+                                name="teamId"
+                                value={team.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="memberId"
+                                value={member.id}
+                              />
+                            </InlineTeamActionForm>
+                          </div>
                         ) : (
                           <span className="text-sm text-gray-500">—</span>
                         )}
