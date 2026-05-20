@@ -14,7 +14,9 @@ import {
 loadEnvConfig(process.cwd());
 
 const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  process.env.BOT_SITE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "http://localhost:3000"
 ).replace(/\/$/, "");
 
 const BOT_API_TOKEN = process.env.BOT_API_TOKEN;

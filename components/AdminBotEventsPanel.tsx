@@ -53,6 +53,18 @@ function formatJsonPreview(value: unknown) {
   }
 }
 
+function shortenId(value: string | null | undefined) {
+  if (!value) {
+    return "-";
+  }
+
+  if (value.length <= 16) {
+    return value;
+  }
+
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+}
+
 function getSettingValue(
   settings: Array<{
     key: string;
@@ -109,49 +121,29 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function BotStatusCard({
+function MiniMetric({
   label,
   value,
   description,
-  online,
 }: {
   label: string;
   value: string;
   description: string;
-  online?: boolean;
 }) {
-  const borderClass =
-    online === undefined
-      ? "border-white/10 bg-white/[0.04]"
-      : online
-        ? "border-emerald-400/25 bg-emerald-500/10"
-        : "border-red-400/25 bg-red-500/10";
-
-  const labelClass =
-    online === undefined
-      ? "text-gray-500"
-      : online
-        ? "text-emerald-300"
-        : "text-red-300";
-
   return (
-    <div
-      className={`rounded-3xl border p-5 shadow-2xl shadow-black/20 ${borderClass}`}
-    >
-      <p
-        className={`text-xs font-black uppercase tracking-[0.16em] ${labelClass}`}
-      >
+    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-gray-500">
         {label}
       </p>
 
-      <p className="mt-3 text-2xl font-black text-white">{value}</p>
+      <p className="mt-2 truncate text-lg font-black text-white">{value}</p>
 
-      <p className="mt-2 text-sm leading-6 text-gray-400">{description}</p>
+      <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
     </div>
   );
 }
 
-function StatCard({
+function EventCountCard({
   label,
   value,
   status,
@@ -161,16 +153,16 @@ function StatCard({
   status: BotEventStatus;
 }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-gray-500">
-        {label}
-      </p>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-gray-500">
+          {label}
+        </p>
 
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
-
-      <div className="mt-4">
         <StatusBadge status={status} />
       </div>
+
+      <p className="mt-4 text-3xl font-black text-white">{value}</p>
     </div>
   );
 }
@@ -263,61 +255,104 @@ export default async function AdminBotEventsPanel() {
 
   return (
     <div className="grid gap-8">
-      <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-        <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
-            Bot control
-          </p>
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20">
+        <div className="flex flex-col justify-between gap-6 xl:flex-row xl:items-start">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+              Bot control
+            </p>
 
-          <h2 className="mt-2 text-3xl font-black text-white">Bot events</h2>
+            <h2 className="mt-2 text-3xl font-black text-white">Bot events</h2>
 
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
-            Track Discord operations, bot status, and failed work from one admin
-            view.
-          </p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">
+              Track Discord operations, bot status, and failed work from one
+              admin view.
+            </p>
+          </div>
+
+          <div
+            className={`rounded-2xl border px-5 py-4 ${
+              botStatus.online
+                ? "border-emerald-400/25 bg-emerald-500/10"
+                : "border-red-400/25 bg-red-500/10"
+            }`}
+          >
+            <p
+              className={`text-xs font-black uppercase tracking-[0.16em] ${
+                botStatus.online ? "text-emerald-300" : "text-red-300"
+              }`}
+            >
+              Bot status
+            </p>
+
+            <p className="mt-2 text-2xl font-black text-white">
+              {botStatus.label}
+            </p>
+
+            <p className="mt-1 max-w-sm text-sm leading-6 text-gray-400">
+              {botStatus.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MiniMetric
+            label="Bot account"
+            value={botTag}
+            description={`Guild: ${guildId}`}
+          />
+
+          <MiniMetric
+            label="Last heartbeat"
+            value={formatDate(botStatus.date)}
+            description={`Process uptime: ${uptime}`}
+          />
+
+          <MiniMetric
+            label="Last processed"
+            value={lastProcessedEvent?.type || "-"}
+            description={
+              lastProcessedEvent?.processedAt
+                ? formatDate(lastProcessedEvent.processedAt)
+                : "No processed event yet."
+            }
+          />
+
+          <MiniMetric
+            label="Last event ID"
+            value={shortenId(lastProcessedEvent?.id)}
+            description="Most recent completed or failed operation."
+          />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <BotStatusCard
-          label="Bot status"
-          value={botStatus.label}
-          description={botStatus.description}
-          online={botStatus.online}
-        />
-
-        <BotStatusCard
-          label="Bot account"
-          value={botTag}
-          description={`Guild: ${guildId}`}
-        />
-
-        <BotStatusCard
-          label="Last heartbeat"
-          value={formatDate(botStatus.date)}
-          description={`Process uptime: ${uptime}`}
-        />
-
-        <BotStatusCard
-          label="Last processed"
-          value={lastProcessedEvent?.type || "-"}
-          description={
-            lastProcessedEvent?.processedAt
-              ? formatDate(lastProcessedEvent.processedAt)
-              : "No processed bot event yet."
-          }
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Queued" value={queuedCount} status="queued" />
-        <StatCard
+        <EventCountCard label="Queued" value={queuedCount} status="queued" />
+        <EventCountCard
           label="Processing"
           value={processingCount}
           status="processing"
         />
-        <StatCard label="Completed" value={completedCount} status="completed" />
-        <StatCard label="Failed" value={failedCount} status="failed" />
+        <EventCountCard
+          label="Completed"
+          value={completedCount}
+          status="completed"
+        />
+        <EventCountCard label="Failed" value={failedCount} status="failed" />
+      </div>
+
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-300">
+            Recent operations
+          </p>
+
+          <h3 className="mt-2 text-2xl font-black text-white">
+            Latest bot events
+          </h3>
+        </div>
+
+        <p className="text-sm text-gray-500">Showing latest 30 events</p>
       </div>
 
       {events.length === 0 ? (
@@ -343,8 +378,7 @@ export default async function AdminBotEventsPanel() {
                   </div>
 
                   <h3 className="break-words text-xl font-black text-white">
-                    {event.entityType || "event"}{" "}
-                    {event.entityId ? `· ${event.entityId}` : ""}
+                    {event.entityType || "event"} · {shortenId(event.entityId)}
                   </h3>
 
                   <div className="mt-3 grid gap-2 text-sm text-gray-400 md:grid-cols-2 xl:grid-cols-4">
@@ -381,27 +415,29 @@ export default async function AdminBotEventsPanel() {
                 <RetryButton eventId={event.id} status={event.status} />
               </div>
 
-              <details className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4">
-                <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.12em] text-gray-300">
-                  Payload
-                </summary>
-
-                <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-gray-300">
-                  {formatJsonPreview(event.payload)}
-                </pre>
-              </details>
-
-              {event.result && (
-                <details className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="mt-5 grid gap-3">
+                <details className="rounded-2xl border border-white/10 bg-black/25 p-4">
                   <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.12em] text-gray-300">
-                    Result
+                    Payload
                   </summary>
 
                   <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-gray-300">
-                    {formatJsonPreview(event.result)}
+                    {formatJsonPreview(event.payload)}
                   </pre>
                 </details>
-              )}
+
+                {event.result && (
+                  <details className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.12em] text-gray-300">
+                      Result
+                    </summary>
+
+                    <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-gray-300">
+                      {formatJsonPreview(event.result)}
+                    </pre>
+                  </details>
+                )}
+              </div>
             </article>
           ))}
         </div>
