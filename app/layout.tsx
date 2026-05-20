@@ -4,20 +4,35 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://rtn-ebon.vercel.app"),
   title: {
-    default: "RTN | The Noobs of Temple & Rift",
-    template: "%s | RTN",
+    default: "Ascendra",
+    template: "%s | Ascendra",
   },
   description:
-    "The Noobs of Temple & Rift is a gaming community for players, tournaments, teamwork, and shared moments.",
+    "Ascendra is a competitive gaming platform for teams, tournaments, rankings, and organized community events.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/images/brand/favicon.ico",
+    shortcut: "/images/brand/favicon.ico",
+    apple: "/images/brand/apple-touch-icon.png",
   },
   openGraph: {
-    title: "RTN | The Noobs of Temple & Rift",
+    title: "Ascendra",
     description:
-      "A gaming community for players, tournaments, teamwork, and shared moments.",
-    images: ["/logo-full.svg"],
+      "A competitive gaming platform for teams, tournaments, rankings, and organized community events.",
+    images: [
+      {
+        url: "/images/brand/og-cover.png",
+        width: 1200,
+        height: 630,
+        alt: "Ascendra",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ascendra",
+    description:
+      "A competitive gaming platform for teams, tournaments, rankings, and organized community events.",
+    images: ["/images/brand/og-cover.png"],
   },
 };
 
