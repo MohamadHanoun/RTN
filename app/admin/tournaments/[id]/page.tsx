@@ -60,7 +60,7 @@ function StatusBadge({ label, status }: { label: string; status: string }) {
     upcoming: "border-yellow-400/25 bg-yellow-500/10 text-yellow-300",
     closed: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
-    registered: "border-cyan-400/25 bg-cyan-500/10 text-cyan-300",
+    registered: "border-violet-400/25 bg-violet-500/10 text-violet-200",
     approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
     rejected: "border-red-400/25 bg-red-500/10 text-red-300",
   };
@@ -98,7 +98,7 @@ function SectionHeader({
   description: string;
 }) {
   return (
-    <div className="border-b border-white/10 bg-white/[0.03] px-5 py-4">
+    <div className="bg-white/[0.03] px-5 py-4">
       <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
         {label}
       </p>
@@ -160,7 +160,7 @@ function ProgressBar({
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-violet-500 shadow-lg shadow-violet-500/30"
+          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/25"
           style={{
             width: `${progress}%`,
           }}
@@ -243,22 +243,24 @@ export default async function ManageTournamentPage({
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#090b15_42%,#070811)]" />
 
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative overflow-hidden border-b border-white/10">
+        <section className="relative min-h-[620px] overflow-hidden">
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-45"
+            className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage: `url("${tournamentImage}")`,
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070811]/70 via-[#070811]/88 to-[#070811]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.30)_0%,transparent_35%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.10)_0%,transparent_28%)]" />
 
-          <div className="relative z-10 mx-auto max-w-[1440px] px-6 py-16 lg:px-10">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,8,17,0.90)_0%,rgba(7,8,17,0.58)_44%,rgba(7,8,17,0.76)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.22),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.08),transparent_30%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent via-[#070811]/75 to-[#070811]" />
+
+          <div className="relative z-10 mx-auto max-w-[1440px] px-6 pb-32 pt-20 lg:px-10">
             <Link
               href="/admin?tab=tournaments"
               className="mb-8 inline-flex rounded-xl border border-white/10 bg-black/25 px-4 py-2 text-sm font-black text-gray-300 transition hover:bg-white/10 hover:text-white"
@@ -300,25 +302,16 @@ export default async function ManageTournamentPage({
               </div>
             </div>
           </div>
-
-          <svg
-            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
-            viewBox="0 0 1440 120"
-            fill="currentColor"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" />
-          </svg>
         </section>
 
-        <section className="mx-auto max-w-[1440px] px-6 py-8 lg:px-10">
+        <section className="relative -mt-20 mx-auto max-w-[1440px] px-6 pb-8 lg:px-10">
           <AdminTabNavigation activeTab="tournaments" />
         </section>
 
         <section className="mx-auto grid max-w-[1440px] gap-6 px-6 pb-16 lg:px-10">
-          <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
+          <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur">
             <div
-              className="relative min-h-72 border-b border-white/10 bg-cover bg-center"
+              className="relative min-h-72 bg-cover bg-center"
               style={{
                 backgroundImage: `linear-gradient(to bottom, rgba(7,8,17,0.05), rgba(7,8,17,0.88)), url("${tournamentImage}")`,
               }}
