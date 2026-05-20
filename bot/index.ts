@@ -94,7 +94,7 @@ async function processTournamentAnnouncement(event: BotEvent) {
 
   const channel = await client.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
 
-  if (!channel || !("send" in channel)) {
+  if (!channel || !channel.isSendable()) {
     throw new Error("Announcement channel was not found or is not sendable.");
   }
 
@@ -193,7 +193,7 @@ async function findOrCreateTeamChannel(params: {
 
     return (
       channel.name === params.channelName &&
-      channel.type === ChannelType.GuildText
+      channel.type === ChannelType.GuildVoice
     );
   });
 
@@ -204,14 +204,21 @@ async function findOrCreateTeamChannel(params: {
   const permissionOverwrites = [
     {
       id: guild.roles.everyone.id,
-      deny: [PermissionFlagsBits.ViewChannel],
+      allow: [PermissionFlagsBits.ViewChannel],
+      deny: [
+        PermissionFlagsBits.Connect,
+        PermissionFlagsBits.Speak,
+        PermissionFlagsBits.Stream,
+      ],
     },
     {
       id: params.roleId,
       allow: [
         PermissionFlagsBits.ViewChannel,
-        PermissionFlagsBits.SendMessages,
-        PermissionFlagsBits.ReadMessageHistory,
+        PermissionFlagsBits.Connect,
+        PermissionFlagsBits.Speak,
+        PermissionFlagsBits.Stream,
+        PermissionFlagsBits.UseVAD,
       ],
     },
   ];
@@ -221,8 +228,10 @@ async function findOrCreateTeamChannel(params: {
       id: roleId,
       allow: [
         PermissionFlagsBits.ViewChannel,
-        PermissionFlagsBits.SendMessages,
-        PermissionFlagsBits.ReadMessageHistory,
+        PermissionFlagsBits.Connect,
+        PermissionFlagsBits.Speak,
+        PermissionFlagsBits.Stream,
+        PermissionFlagsBits.UseVAD,
       ],
     });
   }
@@ -232,8 +241,9 @@ async function findOrCreateTeamChannel(params: {
       id: client.user.id,
       allow: [
         PermissionFlagsBits.ViewChannel,
-        PermissionFlagsBits.SendMessages,
-        PermissionFlagsBits.ReadMessageHistory,
+        PermissionFlagsBits.Connect,
+        PermissionFlagsBits.Speak,
+        PermissionFlagsBits.Stream,
         PermissionFlagsBits.ManageChannels,
         PermissionFlagsBits.ManageRoles,
       ],
@@ -242,10 +252,10 @@ async function findOrCreateTeamChannel(params: {
 
   return guild.channels.create({
     name: params.channelName,
-    type: ChannelType.GuildText,
+    type: ChannelType.GuildVoice,
     parent: TOURNAMENT_CATEGORY_ID,
     permissionOverwrites,
-    reason: "Tournament team private channel",
+    reason: "Tournament team voice channel",
   });
 }
 
@@ -328,7 +338,7 @@ async function lockTeamChannel(params: {
 
   const guild = await getGuild();
 
-  let channel = null;
+  let channel: any = null;
 
   if (params.channelId) {
     channel = await guild.channels.fetch(params.channelId);
@@ -345,20 +355,22 @@ async function lockTeamChannel(params: {
 
         return (
           item.name === params.channelName &&
-          item.type === ChannelType.GuildText
+          item.type === ChannelType.GuildVoice
         );
       }) || null;
   }
 
-  if (!channel || channel.type !== ChannelType.GuildText) {
+  if (!channel || channel.type !== ChannelType.GuildVoice) {
     return {
       locked: false,
     };
   }
 
   await channel.permissionOverwrites.edit(params.roleId, {
-    ViewChannel: false,
-    SendMessages: false,
+    ViewChannel: true,
+    Connect: false,
+    Speak: false,
+    Stream: false,
   });
 
   return {
