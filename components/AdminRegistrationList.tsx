@@ -17,7 +17,7 @@ function StatusBadge({ status }: { status: string }) {
 
   const styles: Record<string, string> = {
     registered: "border-violet-400/25 bg-violet-500/10 text-violet-200",
-    approved: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300",
+    approved: "border-emerald-400/20 bg-emerald-500/[0.06] text-emerald-300/80",
     rejected: "border-red-400/25 bg-red-500/10 text-red-300",
     cancelled: "border-white/10 bg-white/5 text-gray-300",
   };
@@ -289,8 +289,11 @@ export default async function AdminRegistrationList({
                           />
                         </InlineAdminRegistrationForm>
                       ) : (
-                        <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-center text-sm font-black text-emerald-300">
-                          Approved
+                        <div className="inline-flex cursor-default items-center justify-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/[0.06] px-4 py-3 text-center text-sm font-black text-emerald-300/80">
+                          <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-400/15 text-xs text-emerald-300">
+                            ✓
+                          </span>
+                          Already approved
                         </div>
                       )}
                     </div>
