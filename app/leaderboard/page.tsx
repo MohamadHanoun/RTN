@@ -55,8 +55,8 @@ function FilterButton({
       href={href}
       className={`rounded-xl border px-4 py-2 text-sm font-black transition ${
         active
-          ? "border-violet-400/35 bg-violet-500/15 text-white"
-          : "border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10 hover:text-white"
+          ? "border-violet-400/35 bg-violet-500/15 text-white shadow-lg shadow-violet-950/20"
+          : "border-white/10 bg-black/20 text-gray-300 hover:border-violet-400/30 hover:bg-white/10 hover:text-white"
       }`}
     >
       {label}
@@ -64,14 +64,24 @@ function FilterButton({
   );
 }
 
-function StatRow({ label, value }: { label: string; value: string | number }) {
+function StatCard({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  hint: string;
+}) {
   return (
-    <div className="grid gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-4 shadow-2xl shadow-black/20 backdrop-blur">
+    <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5 shadow-2xl shadow-black/20 backdrop-blur">
       <p className="text-xs font-black uppercase tracking-[0.14em] text-gray-500">
         {label}
       </p>
 
-      <p className="truncate text-2xl font-black text-white">{value}</p>
+      <p className="mt-2 truncate text-3xl font-black text-white">{value}</p>
+
+      <p className="mt-2 text-sm leading-6 text-gray-500">{hint}</p>
     </div>
   );
 }
@@ -279,6 +289,9 @@ export default async function LeaderboardPage({
       ? playerLeaderboard[0]?.username || "-"
       : teamLeaderboard[0]?.name || "-";
 
+  const leaderboardLabel =
+    selectedType === "players" ? "Player rankings" : "Team rankings";
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#090b15_42%,#070811)]" />
@@ -286,7 +299,7 @@ export default async function LeaderboardPage({
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative min-h-[430px] overflow-hidden">
+        <section className="relative min-h-[520px] overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
@@ -295,64 +308,93 @@ export default async function LeaderboardPage({
             }}
           />
 
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,8,17,0.90)_0%,rgba(7,8,17,0.62)_44%,rgba(7,8,17,0.78)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,8,17,0.92)_0%,rgba(7,8,17,0.64)_44%,rgba(7,8,17,0.80)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.22),transparent_34%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-[#070811]/75 to-[#070811]" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent via-[#070811]/80 to-[#070811]" />
 
           <div className="relative z-10 mx-auto max-w-[1680px] px-6 pb-28 pt-20 lg:px-10 2xl:px-14">
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-violet-300">
-              Competitive
-            </p>
+            <div className="max-w-4xl">
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-violet-300">
+                Competitive standings
+              </p>
 
-            <h1 className="text-5xl font-black uppercase tracking-tight text-white md:text-7xl">
-              Leaderboard
-            </h1>
+              <h1 className="text-5xl font-black uppercase tracking-tight text-white md:text-7xl">
+                Leaderboard
+              </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-gray-300">
-              Rankings based on tournament points.
-            </p>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-gray-300">
+                Official rankings based on approved tournament results and
+                awarded points.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <FilterButton
+                  href={buildLeaderboardHref(selectedGame, "players")}
+                  label="Players"
+                  active={selectedType === "players"}
+                />
+
+                <FilterButton
+                  href={buildLeaderboardHref(selectedGame, "teams")}
+                  label="Teams"
+                  active={selectedType === "teams"}
+                />
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="relative -mt-16 mx-auto grid max-w-[1680px] gap-8 px-6 pb-16 lg:px-10 2xl:px-14">
-          <section className="grid gap-5 rounded-3xl border border-white/10 bg-white/[0.045] p-5 shadow-2xl shadow-black/20 backdrop-blur">
-            <div className="flex flex-wrap gap-2">
-              <FilterButton
-                href={buildLeaderboardHref(selectedGame, "players")}
-                label="Players"
-                active={selectedType === "players"}
-              />
-              <FilterButton
-                href={buildLeaderboardHref(selectedGame, "teams")}
-                label="Teams"
-                active={selectedType === "teams"}
-              />
-            </div>
+        <section className="relative -mt-24 mx-auto grid max-w-[1680px] gap-8 px-6 pb-16 lg:px-10 2xl:px-14">
+          <section className="grid gap-5 rounded-[32px] border border-white/10 bg-white/[0.045] p-5 shadow-2xl shadow-black/20 backdrop-blur">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
+                  {leaderboardLabel}
+                </p>
 
-            <div className="flex flex-wrap gap-2">
-              {games.map((game) => (
-                <FilterButton
-                  key={game}
-                  href={buildLeaderboardHref(game, selectedType)}
-                  label={game}
-                  active={selectedGame === game}
-                />
-              ))}
+                <h2 className="mt-2 text-3xl font-black text-white">
+                  {selectedGame === "Overall"
+                    ? "Overall standings"
+                    : `${selectedGame} standings`}
+                </h2>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {games.map((game) => (
+                  <FilterButton
+                    key={game}
+                    href={buildLeaderboardHref(game, selectedType)}
+                    label={game}
+                    active={selectedGame === game}
+                  />
+                ))}
+              </div>
             </div>
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatRow
-              label={
-                selectedType === "players" ? "Ranked players" : "Ranked teams"
-              }
+            <StatCard
+              label={selectedType === "players" ? "Players" : "Teams"}
               value={activeLeaderboard.length}
+              hint="Ranked entries with tournament points."
             />
-            <StatRow label="Total points" value={totalPoints} />
-            <StatRow label="Total results" value={totalResults} />
-            <StatRow
+
+            <StatCard
+              label="Total points"
+              value={totalPoints}
+              hint="Points awarded in the selected ranking."
+            />
+
+            <StatCard
+              label="Results"
+              value={totalResults}
+              hint="Saved tournament results included here."
+            />
+
+            <StatCard
               label={selectedType === "players" ? "Top player" : "Top team"}
               value={topItem}
+              hint="Current highest ranked entry."
             />
           </section>
 
@@ -368,8 +410,8 @@ export default async function LeaderboardPage({
               description={
                 selectedGame === "Overall"
                   ? selectedType === "players"
-                    ? "Player rankings will appear here when results are added."
-                    : "Team rankings will appear here when results are added."
+                    ? "Player rankings will appear here when official results are added."
+                    : "Team rankings will appear here when official results are added."
                   : `No points have been awarded for ${selectedGame} yet.`
               }
               actionLabel="View tournaments"
