@@ -4,23 +4,27 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-export type AdminRegistrationActionResult = {
+export type TournamentRegistrationActionResult = {
   ok: boolean;
   message: string;
   redirectTo?: string;
 };
 
-function success(message: string): AdminRegistrationActionResult {
+function success(
+  message: string,
+  redirectTo?: string,
+): TournamentRegistrationActionResult {
   return {
     ok: true,
     message,
+    redirectTo,
   };
 }
 
 function fail(
   message: string,
   redirectTo?: string,
-): AdminRegistrationActionResult {
+): TournamentRegistrationActionResult {
   return {
     ok: false,
     message,
@@ -28,216 +32,178 @@ function fail(
   };
 }
 
-async function requireAdmin(): Promise<AdminRegistrationActionResult | null> {
+function getValue(formData: FormData, name: string) {
+  return String(formData.get(name) || "").trim();
+}
+
+async function getCurrentUser() {
   const session = await auth();
 
-  const sessionUser = session?.user as
-    | {
-        databaseId?: string;
-        isAdmin?: boolean;
-      }
-    | undefined;
-
-  if (!sessionUser?.databaseId) {
-    return fail("Please login first.", "/login");
+  if (!session?.user?.databaseId) {
+    return null;
   }
 
-  if (!sessionUser.isAdmin) {
-    return fail("Only Ascendra admins can manage tournament registrations.");
-  }
-
-  return null;
-}
-
-function getRegistrationId(formData: FormData) {
-  return String(
-    formData.get("registrationId") || formData.get("id") || "",
-  ).trim();
-}
-
-function normalizeRolePart(value: string) {
-  return value
-    .replace(/\s+/g, " ")
-    .replace(/[^\p{L}\p{N}\s#._-]/gu, "")
-    .trim()
-    .slice(0, 40);
-}
-
-function buildTournamentRoleName({
-  tournamentTitle,
-  teamName,
-}: {
-  tournamentTitle: string;
-  teamName: string;
-}) {
-  const tournament = normalizeRolePart(tournamentTitle) || "Tournament";
-  const team = normalizeRolePart(teamName) || "Team";
-
-  return `Ascendra | ${tournament} | ${team}`.slice(0, 95);
+  return prisma.user.findUnique({
+    where: {
+      id: session.user.databaseId,
+    },
+  });
 }
 
 function shouldRequestRoleRemoval(status: string) {
   return !["not_needed", "removed"].includes(status);
 }
 
-function revalidateRegistrationViews(tournamentId: string) {
-  revalidatePath("/admin");
+function revalidateTournamentRegistrationViews(tournamentId: string) {
   revalidatePath(`/tournaments/${tournamentId}`);
   revalidatePath("/tournaments");
   revalidatePath("/profile");
+  revalidatePath("/admin");
 }
 
-export async function approveRegistrationInline(
+async function registerTeamForTournament(
   formData: FormData,
-): Promise<AdminRegistrationActionResult> {
-  const authError = await requireAdmin();
+): Promise<TournamentRegistrationActionResult> {
+  const user = await getCurrentUser();
 
-  if (authError) {
-    return authError;
+  if (!user) {
+    return fail("Please login first.", "/login");
   }
 
-  const registrationId = getRegistrationId(formData);
-
-  if (!registrationId) {
-    return fail("Registration ID is missing.");
+  if (!user.isGuildMember) {
+    return fail("You must be an Ascendra Discord member to register.");
   }
 
-  const registration = await prisma.tournamentRegistration.findUnique({
+  const tournamentId = getValue(formData, "tournamentId");
+  const teamId = getValue(formData, "teamId");
+
+  if (!tournamentId || !teamId) {
+    return fail("Tournament and team are required.");
+  }
+
+  const tournament = await prisma.tournament.findUnique({
     where: {
-      id: registrationId,
+      id: tournamentId,
     },
     include: {
-      tournament: true,
-      team: {
-        include: {
-          members: {
-            include: {
-              user: true,
-            },
+      registrations: {
+        where: {
+          status: {
+            in: ["registered", "approved"],
           },
         },
       },
     },
   });
 
-  if (!registration) {
-    return fail("Registration was not found.");
+  if (!tournament) {
+    return fail("Tournament was not found.");
   }
 
-  if (registration.status === "approved") {
-    return fail("This registration is already approved.");
+  if (tournament.registrationStatus !== "open") {
+    return fail("Registration is currently closed for this tournament.");
   }
 
-  const roleName = buildTournamentRoleName({
-    tournamentTitle: registration.tournament.title,
-    teamName: registration.team.name,
-  });
+  if (["closed", "cancelled"].includes(tournament.status)) {
+    return fail("This tournament is not available for registration.");
+  }
 
-  const nextDiscordRoleStatus =
-    registration.discordRoleId && registration.discordRoleStatus === "active"
-      ? "active"
-      : "pending_create";
+  if (tournament.registrations.length >= tournament.maxSlots) {
+    return fail("This tournament is full.");
+  }
 
-  await prisma.tournamentRegistration.update({
+  const team = await prisma.team.findUnique({
     where: {
-      id: registration.id,
-    },
-    data: {
-      status: "approved",
-      rejectionReason: null,
-      approvedAt: new Date(),
-      reviewedAt: new Date(),
-      discordRoleStatus: nextDiscordRoleStatus,
-      discordRoleName: roleName,
-      discordRoleError: null,
-      discordRoleRequestedAt: new Date(),
-      discordRoleSyncedAt:
-        nextDiscordRoleStatus === "active"
-          ? registration.discordRoleSyncedAt
-          : null,
-    },
-  });
-
-  revalidateRegistrationViews(registration.tournamentId);
-
-  return success(
-    "Registration approved. Discord role creation is queued for the bot.",
-  );
-}
-
-export async function rejectRegistrationInline(
-  formData: FormData,
-): Promise<AdminRegistrationActionResult> {
-  const authError = await requireAdmin();
-
-  if (authError) {
-    return authError;
-  }
-
-  const registrationId = getRegistrationId(formData);
-  const rejectionReason = String(formData.get("rejectionReason") || "").trim();
-
-  if (!registrationId) {
-    return fail("Registration ID is missing.");
-  }
-
-  if (!rejectionReason) {
-    return fail("Rejection reason is required.");
-  }
-
-  const registration = await prisma.tournamentRegistration.findUnique({
-    where: {
-      id: registrationId,
+      id: teamId,
     },
     include: {
-      tournament: true,
-      team: true,
+      members: true,
     },
   });
 
-  if (!registration) {
-    return fail("Registration was not found.");
+  if (!team) {
+    return fail("Team was not found.");
   }
 
-  const needsRoleRemoval = shouldRequestRoleRemoval(
-    registration.discordRoleStatus,
-  );
+  if (team.leaderId !== user.id) {
+    return fail("Only the team leader can register this team.");
+  }
 
-  await prisma.tournamentRegistration.update({
+  if (team.game !== tournament.game) {
+    return fail("This team does not match the tournament game.");
+  }
+
+  if (team.members.length < tournament.teamSize) {
+    return fail(
+      `This tournament requires at least ${tournament.teamSize} player${
+        tournament.teamSize === 1 ? "" : "s"
+      }.`,
+    );
+  }
+
+  const existingRegistration = await prisma.tournamentRegistration.findUnique({
     where: {
-      id: registration.id,
-    },
-    data: {
-      status: "rejected",
-      rejectionReason,
-      reviewedAt: new Date(),
-      approvedAt: null,
-      discordRoleStatus: needsRoleRemoval ? "pending_remove" : "not_needed",
-      discordRoleError: null,
-      discordRoleRequestedAt: needsRoleRemoval ? new Date() : null,
-      discordRoleSyncedAt: null,
+      tournamentId_teamId: {
+        tournamentId: tournament.id,
+        teamId: team.id,
+      },
     },
   });
 
-  revalidateRegistrationViews(registration.tournamentId);
+  if (
+    existingRegistration &&
+    ["registered", "approved"].includes(existingRegistration.status)
+  ) {
+    return fail("This team is already registered for this tournament.");
+  }
 
-  return success(
-    needsRoleRemoval
-      ? "Registration rejected. Discord role removal is queued for the bot."
-      : "Registration rejected successfully.",
-  );
+  if (existingRegistration) {
+    await prisma.tournamentRegistration.update({
+      where: {
+        id: existingRegistration.id,
+      },
+      data: {
+        status: "registered",
+        registeredById: user.id,
+        rejectionReason: null,
+        approvedAt: null,
+        cancelledAt: null,
+        reviewedAt: null,
+        discordRoleStatus: "not_needed",
+        discordRoleName: null,
+        discordRoleId: null,
+        discordRoleError: null,
+        discordRoleRequestedAt: null,
+        discordRoleSyncedAt: null,
+      },
+    });
+  } else {
+    await prisma.tournamentRegistration.create({
+      data: {
+        tournamentId: tournament.id,
+        teamId: team.id,
+        registeredById: user.id,
+        status: "registered",
+        discordRoleStatus: "not_needed",
+      },
+    });
+  }
+
+  revalidateTournamentRegistrationViews(tournament.id);
+
+  return success("Team registered successfully. Waiting for admin review.");
 }
 
-export async function cancelRegistrationInline(
+async function cancelTournamentRegistration(
   formData: FormData,
-): Promise<AdminRegistrationActionResult> {
-  const authError = await requireAdmin();
+): Promise<TournamentRegistrationActionResult> {
+  const user = await getCurrentUser();
 
-  if (authError) {
-    return authError;
+  if (!user) {
+    return fail("Please login first.", "/login");
   }
 
-  const registrationId = getRegistrationId(formData);
+  const registrationId = getValue(formData, "registrationId");
 
   if (!registrationId) {
     return fail("Registration ID is missing.");
@@ -248,17 +214,35 @@ export async function cancelRegistrationInline(
       id: registrationId,
     },
     include: {
-      tournament: true,
       team: true,
+      tournament: true,
     },
   });
 
   if (!registration) {
     return fail("Registration was not found.");
+  }
+
+  if (registration.team.leaderId !== user.id) {
+    return fail("Only the team leader can cancel this registration.");
   }
 
   if (registration.status === "cancelled") {
     return fail("This registration is already cancelled.");
+  }
+
+  if (registration.status === "approved") {
+    return fail(
+      "Approved registrations cannot be cancelled by players. Please contact an admin.",
+    );
+  }
+
+  if (registration.tournament.registrationStatus !== "open") {
+    return fail("Registration cancellation is closed for this tournament.");
+  }
+
+  if (["closed", "cancelled"].includes(registration.tournament.status)) {
+    return fail("This tournament registration can no longer be cancelled.");
   }
 
   const needsRoleRemoval = shouldRequestRoleRemoval(
@@ -271,9 +255,9 @@ export async function cancelRegistrationInline(
     },
     data: {
       status: "cancelled",
-      reviewedAt: new Date(),
-      cancelledAt: new Date(),
       approvedAt: null,
+      cancelledAt: new Date(),
+      reviewedAt: new Date(),
       discordRoleStatus: needsRoleRemoval ? "pending_remove" : "not_needed",
       discordRoleError: null,
       discordRoleRequestedAt: needsRoleRemoval ? new Date() : null,
@@ -281,11 +265,31 @@ export async function cancelRegistrationInline(
     },
   });
 
-  revalidateRegistrationViews(registration.tournamentId);
+  revalidateTournamentRegistrationViews(registration.tournamentId);
 
-  return success(
-    needsRoleRemoval
-      ? "Registration cancelled. Discord role removal is queued for the bot."
-      : "Registration cancelled successfully.",
-  );
+  return success("Registration cancelled successfully.");
+}
+
+export async function registerRegistrationInline(
+  formData: FormData,
+): Promise<TournamentRegistrationActionResult> {
+  return registerTeamForTournament(formData);
+}
+
+export async function cancelRegistrationInline(
+  formData: FormData,
+): Promise<TournamentRegistrationActionResult> {
+  return cancelTournamentRegistration(formData);
+}
+
+export async function registerTeamForTournamentInline(
+  formData: FormData,
+): Promise<TournamentRegistrationActionResult> {
+  return registerTeamForTournament(formData);
+}
+
+export async function cancelTournamentRegistrationInline(
+  formData: FormData,
+): Promise<TournamentRegistrationActionResult> {
+  return cancelTournamentRegistration(formData);
 }
