@@ -81,6 +81,44 @@ function getEditableError(_status: string) {
   return null;
 }
 
+async function getBlockingActiveRegistration({
+  teamId,
+  memberCountAfterChange,
+}: {
+  teamId: string;
+  memberCountAfterChange: number;
+}) {
+  return prisma.tournamentRegistration.findFirst({
+    where: {
+      teamId,
+      status: {
+        in: ["registered", "approved"],
+      },
+      tournament: {
+        teamSize: {
+          gt: memberCountAfterChange,
+        },
+      },
+    },
+    select: {
+      status: true,
+      tournament: {
+        select: {
+          title: true,
+          teamSize: true,
+        },
+      },
+    },
+  });
+}
+
+function getTeamSizeBlockMessage(
+  tournamentTitle: string,
+  requiredTeamSize: number,
+) {
+  return `This action is blocked because it would make the team too small for "${tournamentTitle}". This tournament requires ${requiredTeamSize} players.`;
+}
+
 export async function updateTeamInline(
   formData: FormData,
 ): Promise<TeamInlineActionResult> {
@@ -182,7 +220,7 @@ export async function invitePlayerToTeamInline(
   }
 
   if (!invitedUser.isGuildMember) {
-    return fail("This player must join the RTN Discord server first.");
+    return fail("This player must join the Ascendra Discord server first.");
   }
 
   if (invitedUser.id === user.id) {
@@ -286,6 +324,22 @@ export async function removeTeamMemberInline(
     return fail("The team leader cannot be removed.");
   }
 
+  const memberCountAfterRemove = team.members.length - 1;
+
+  const blockingRegistration = await getBlockingActiveRegistration({
+    teamId: team.id,
+    memberCountAfterChange: memberCountAfterRemove,
+  });
+
+  if (blockingRegistration) {
+    return fail(
+      getTeamSizeBlockMessage(
+        blockingRegistration.tournament.title,
+        blockingRegistration.tournament.teamSize,
+      ),
+    );
+  }
+
   await prisma.teamMember.delete({
     where: {
       id: member.id,
@@ -296,6 +350,158 @@ export async function removeTeamMemberInline(
   revalidatePath(`/profile/teams/${team.id}`);
 
   return success("Team member removed.");
+}
+
+export async function leaveTeamInline(
+  formData: FormData,
+): Promise<TeamInlineActionResult> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return fail("Please login first.", "/login");
+  }
+
+  const teamId = getTeamId(formData);
+
+  if (!teamId) {
+    return fail("Team ID is missing.");
+  }
+
+  const team = await prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+    include: {
+      members: true,
+    },
+  });
+
+  if (!team) {
+    return fail("Team was not found.");
+  }
+
+  if (team.leaderId === user.id) {
+    return fail(
+      "The team leader cannot leave the team. Delete the team or transfer leadership first.",
+    );
+  }
+
+  const membership = await prisma.teamMember.findUnique({
+    where: {
+      teamId_userId: {
+        teamId: team.id,
+        userId: user.id,
+      },
+    },
+  });
+
+  if (!membership) {
+    return fail("You are not a member of this team.");
+  }
+
+  const memberCountAfterLeave = team.members.length - 1;
+
+  const blockingRegistration = await getBlockingActiveRegistration({
+    teamId: team.id,
+    memberCountAfterChange: memberCountAfterLeave,
+  });
+
+  if (blockingRegistration) {
+    return fail(
+      getTeamSizeBlockMessage(
+        blockingRegistration.tournament.title,
+        blockingRegistration.tournament.teamSize,
+      ),
+    );
+  }
+
+  await prisma.teamMember.delete({
+    where: {
+      id: membership.id,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  const message = encodeURIComponent("You left the team.");
+
+  return success("You left the team.", `/profile?message=${message}`);
+}
+
+export async function transferTeamLeadershipInline(
+  formData: FormData,
+): Promise<TeamInlineActionResult> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return fail("Please login first.", "/login");
+  }
+
+  const teamId = getTeamId(formData);
+  const memberId = String(formData.get("memberId") || "").trim();
+
+  if (!teamId || !memberId) {
+    return fail("Team ID and member ID are required.");
+  }
+
+  const { team, error } = await getLeaderTeam(teamId, user.id);
+
+  if (!team) {
+    return fail(error || "Team was not found.");
+  }
+
+  const targetMember = await prisma.teamMember.findUnique({
+    where: {
+      id: memberId,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!targetMember || targetMember.teamId !== team.id) {
+    return fail("Team member was not found.");
+  }
+
+  if (targetMember.userId === user.id) {
+    return fail("You are already the team leader.");
+  }
+
+  await prisma.$transaction([
+    prisma.team.update({
+      where: {
+        id: team.id,
+      },
+      data: {
+        leaderId: targetMember.userId,
+      },
+    }),
+
+    prisma.teamMember.updateMany({
+      where: {
+        teamId: team.id,
+        userId: user.id,
+      },
+      data: {
+        role: "member",
+      },
+    }),
+
+    prisma.teamMember.update({
+      where: {
+        id: targetMember.id,
+      },
+      data: {
+        role: "leader",
+      },
+    }),
+  ]);
+
+  revalidatePath("/profile");
+  revalidatePath(`/profile/teams/${team.id}`);
+
+  return success(`Leadership transferred to ${targetMember.user.username}.`);
 }
 
 export async function cancelTeamInviteInline(
@@ -428,138 +634,4 @@ export async function deleteTeamInline(
   const message = encodeURIComponent("Team deleted.");
 
   return success("Team deleted.", `/profile?message=${message}`);
-}
-export async function leaveTeamInline(
-  formData: FormData,
-): Promise<TeamInlineActionResult> {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return fail("Please login first.", "/login");
-  }
-
-  const teamId = getTeamId(formData);
-
-  if (!teamId) {
-    return fail("Team ID is missing.");
-  }
-
-  const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
-    include: {
-      members: true,
-    },
-  });
-
-  if (!team) {
-    return fail("Team was not found.");
-  }
-
-  if (team.leaderId === user.id) {
-    return fail(
-      "The team leader cannot leave the team. Delete the team or transfer leadership first.",
-    );
-  }
-
-  const membership = await prisma.teamMember.findUnique({
-    where: {
-      teamId_userId: {
-        teamId: team.id,
-        userId: user.id,
-      },
-    },
-  });
-
-  if (!membership) {
-    return fail("You are not a member of this team.");
-  }
-
-  await prisma.teamMember.delete({
-    where: {
-      id: membership.id,
-    },
-  });
-
-  revalidatePath("/profile");
-  revalidatePath(`/profile/teams/${team.id}`);
-
-  const message = encodeURIComponent("You left the team.");
-
-  return success("You left the team.", `/profile?message=${message}`);
-}
-export async function transferTeamLeadershipInline(
-  formData: FormData,
-): Promise<TeamInlineActionResult> {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return fail("Please login first.", "/login");
-  }
-
-  const teamId = getTeamId(formData);
-  const memberId = String(formData.get("memberId") || "").trim();
-
-  if (!teamId || !memberId) {
-    return fail("Team ID and member ID are required.");
-  }
-
-  const { team, error } = await getLeaderTeam(teamId, user.id);
-
-  if (!team) {
-    return fail(error || "Team was not found.");
-  }
-
-  const targetMember = await prisma.teamMember.findUnique({
-    where: {
-      id: memberId,
-    },
-    include: {
-      user: true,
-    },
-  });
-
-  if (!targetMember || targetMember.teamId !== team.id) {
-    return fail("Team member was not found.");
-  }
-
-  if (targetMember.userId === user.id) {
-    return fail("You are already the team leader.");
-  }
-
-  await prisma.$transaction([
-    prisma.team.update({
-      where: {
-        id: team.id,
-      },
-      data: {
-        leaderId: targetMember.userId,
-      },
-    }),
-
-    prisma.teamMember.updateMany({
-      where: {
-        teamId: team.id,
-        userId: user.id,
-      },
-      data: {
-        role: "member",
-      },
-    }),
-
-    prisma.teamMember.update({
-      where: {
-        id: targetMember.id,
-      },
-      data: {
-        role: "leader",
-      },
-    }),
-  ]);
-
-  revalidatePath("/profile");
-  revalidatePath(`/profile/teams/${team.id}`);
-
-  return success(`Leadership transferred to ${targetMember.user.username}.`);
 }
