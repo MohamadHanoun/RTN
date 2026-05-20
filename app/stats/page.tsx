@@ -168,20 +168,39 @@ export default async function StatsPage() {
       <div className="relative z-10">
         <Navbar />
 
-        <section className="border-b border-white/10">
-          <div className="mx-auto max-w-[1680px] px-6 py-14 lg:px-10 2xl:px-14">
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-75"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, rgba(7,8,17,0.98), rgba(7,8,17,0.80), rgba(7,8,17,0.96)), url("/images/backgrounds/stats-hero.webp")',
+            }}
+          />
+
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.24)_0%,transparent_34%)]" />
+
+          <div className="relative z-10 mx-auto max-w-[1680px] px-6 py-20 lg:px-10 2xl:px-14">
             <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-violet-300">
               Platform
             </p>
 
-            <h1 className="text-5xl font-black uppercase tracking-tight text-white md:text-6xl">
+            <h1 className="text-5xl font-black uppercase tracking-tight text-white md:text-7xl">
               Stats
             </h1>
 
-            <p className="mt-4 max-w-2xl text-base leading-7 text-gray-400">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-gray-300">
               Current platform numbers and game activity.
             </p>
           </div>
+
+          <svg
+            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
+            viewBox="0 0 1440 90"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,48L120,53.3C240,59,480,69,720,58.7C960,48,1200,16,1320,0L1440,0L1440,90L1320,90C1200,90,960,90,720,90C480,90,240,90,120,90L0,90Z" />
+          </svg>
         </section>
 
         <section className="mx-auto grid max-w-[1680px] gap-10 px-6 py-10 lg:px-10 2xl:px-14">
