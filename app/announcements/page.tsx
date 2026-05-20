@@ -131,23 +131,24 @@ export default async function AnnouncementsPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#090b15_42%,#070811)]" />
 
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative overflow-hidden border-b border-white/10">
+        <section className="relative min-h-[390px] overflow-hidden">
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-75"
+            className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage:
-                'linear-gradient(to right, rgba(7,8,17,0.98), rgba(7,8,17,0.80), rgba(7,8,17,0.96)), url("/images/backgrounds/community-hero.webp")',
+              backgroundImage: 'url("/images/backgrounds/community-hero.webp")',
             }}
           />
 
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.24)_0%,transparent_34%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,8,17,0.90)_0%,rgba(7,8,17,0.64)_44%,rgba(7,8,17,0.80)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.22),transparent_34%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-b from-transparent via-[#070811]/75 to-[#070811]" />
 
-          <div className="relative z-10 mx-auto max-w-[1680px] px-6 py-20 lg:px-10 2xl:px-14">
+          <div className="relative z-10 mx-auto max-w-[1680px] px-6 pb-24 pt-20 lg:px-10 2xl:px-14">
             <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-violet-300">
               Ascendra updates
             </p>
@@ -160,26 +161,17 @@ export default async function AnnouncementsPage() {
               Announcements and tournament updates.
             </p>
           </div>
-
-          <svg
-            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
-            viewBox="0 0 1440 90"
-            fill="currentColor"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,48L120,53.3C240,59,480,69,720,58.7C960,48,1200,16,1320,0L1440,0L1440,90L1320,90C1200,90,960,90,720,90C480,90,240,90,120,90L0,90Z" />
-          </svg>
         </section>
 
-        <section className="mx-auto grid max-w-[1680px] gap-8 px-6 py-10 lg:px-10 2xl:px-14">
+        <section className="relative -mt-12 mx-auto grid max-w-[1680px] gap-8 px-6 pb-16 lg:px-10 2xl:px-14">
           {announcements.length === 0 ? (
             <EmptyState
               title="No announcements yet"
               description="Published announcements will appear here."
             />
           ) : (
-            <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-              <div className="hidden border-b border-white/10 bg-black/25 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1fr)_150px_150px]">
+            <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur">
+              <div className="hidden bg-white/[0.03] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1fr)_150px_150px]">
                 <span>Announcement</span>
                 <span>Category</span>
                 <span>Date</span>

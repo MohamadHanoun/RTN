@@ -54,7 +54,7 @@ function PageStatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-5 shadow-2xl shadow-black/20">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-6 py-5 shadow-2xl shadow-black/20 backdrop-blur">
       <p className="text-xs font-black uppercase tracking-[0.16em] text-gray-500">
         {label}
       </p>
@@ -98,7 +98,7 @@ function ProgressBar({
 
       <div className="h-2 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-violet-500 shadow-lg shadow-violet-500/25"
+          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/25"
           style={{
             width: `${progress}%`,
           }}
@@ -154,23 +154,25 @@ export default async function TournamentsPage({
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070811] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_28%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#0b0d17_45%,#070811)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.16)_0%,transparent_30%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12)_0%,transparent_30%),linear-gradient(to_bottom,#070811,#090b15_42%,#070811)]" />
 
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative overflow-hidden border-b border-white/10">
+        <section className="relative min-h-[430px] overflow-hidden">
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-80"
+            className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage:
-                'linear-gradient(to right, rgba(7,8,17,0.98), rgba(7,8,17,0.82), rgba(7,8,17,0.94)), url("/images/backgrounds/tournaments-hero.webp")',
+                'url("/images/backgrounds/tournaments-hero.webp")',
             }}
           />
 
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.22)_0%,transparent_34%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,8,17,0.88)_0%,rgba(7,8,17,0.58)_44%,rgba(7,8,17,0.74)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.20),transparent_34%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-[#070811]/75 to-[#070811]" />
 
-          <div className="relative z-10 mx-auto max-w-[1680px] px-6 py-20 lg:px-10 2xl:px-14">
+          <div className="relative z-10 mx-auto max-w-[1680px] px-6 pb-28 pt-20 lg:px-10 2xl:px-14">
             <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-violet-300">
               Ascendra events
             </p>
@@ -183,18 +185,9 @@ export default async function TournamentsPage({
               Open, upcoming, and completed community events.
             </p>
           </div>
-
-          <svg
-            className="absolute bottom-[-1px] left-0 w-full text-[#070811]"
-            viewBox="0 0 1440 90"
-            fill="currentColor"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,48L120,53.3C240,59,480,69,720,58.7C960,48,1200,16,1320,0L1440,0L1440,90L1320,90C1200,90,960,90,720,90C480,90,240,90,120,90L0,90Z" />
-          </svg>
         </section>
 
-        <section className="mx-auto grid max-w-[1680px] gap-7 px-6 py-10 lg:px-10 2xl:px-14">
+        <section className="relative -mt-16 mx-auto grid max-w-[1680px] gap-7 px-6 pb-16 lg:px-10 2xl:px-14">
           <ProfileNotice message={params.message} error={params.error} />
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -210,8 +203,8 @@ export default async function TournamentsPage({
               description="Events will appear here when they are published."
             />
           ) : (
-            <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20">
-              <div className="hidden border-b border-white/10 bg-black/25 px-6 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.35fr)_150px_150px_130px_190px_140px] xl:gap-6">
+            <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur">
+              <div className="hidden bg-white/[0.03] px-6 py-4 text-xs font-black uppercase tracking-[0.14em] text-gray-500 xl:grid xl:grid-cols-[minmax(0,1.35fr)_150px_150px_130px_190px_140px] xl:gap-6">
                 <span>Tournament</span>
                 <span>Date</span>
                 <span>Prize</span>
