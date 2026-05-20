@@ -325,57 +325,103 @@ async function removeRoleFromMembers(params: {
   };
 }
 
-async function lockTeamChannel(params: {
+async function findTeamVoiceChannel(params: {
   channelId?: string | null;
   channelName?: string | null;
-  roleId?: string | null;
 }) {
-  if (!params.roleId) {
-    return {
-      locked: false,
-    };
-  }
-
   const guild = await getGuild();
 
-  let channel: any = null;
-
   if (params.channelId) {
-    channel = await guild.channels.fetch(params.channelId);
+    const channel = await guild.channels
+      .fetch(params.channelId)
+      .catch(() => null);
+
+    if (channel && channel.type === ChannelType.GuildVoice) {
+      return channel;
+    }
   }
 
-  if (!channel && params.channelName) {
-    const channels = await guild.channels.fetch();
-
-    channel =
-      channels.find((item) => {
-        if (!item) {
-          return false;
-        }
-
-        return (
-          item.name === params.channelName &&
-          item.type === ChannelType.GuildVoice
-        );
-      }) || null;
+  if (!params.channelName) {
+    return null;
   }
 
-  if (!channel || channel.type !== ChannelType.GuildVoice) {
+  const channels = await guild.channels.fetch();
+
+  return (
+    channels.find((item) => {
+      if (!item) {
+        return false;
+      }
+
+      return (
+        item.name === params.channelName && item.type === ChannelType.GuildVoice
+      );
+    }) || null
+  );
+}
+
+async function deleteTeamVoiceChannel(params: {
+  channelId?: string | null;
+  channelName?: string | null;
+}) {
+  const channel = await findTeamVoiceChannel({
+    channelId: params.channelId,
+    channelName: params.channelName,
+  });
+
+  if (!channel) {
     return {
-      locked: false,
+      deleted: false,
+      channelId: params.channelId || null,
     };
   }
 
-  await channel.permissionOverwrites.edit(params.roleId, {
-    ViewChannel: true,
-    Connect: false,
-    Speak: false,
-    Stream: false,
-  });
+  const channelId = channel.id;
+
+  await channel.delete("Tournament team access removed");
 
   return {
-    locked: true,
-    channelId: channel.id,
+    deleted: true,
+    channelId,
+  };
+}
+
+async function deleteTeamRole(params: {
+  roleId?: string | null;
+  roleName?: string | null;
+}) {
+  const guild = await getGuild();
+
+  let role = null;
+
+  if (params.roleId) {
+    role = await guild.roles.fetch(params.roleId).catch(() => null);
+  }
+
+  if (!role && params.roleName) {
+    const roles = await guild.roles.fetch();
+
+    role = roles.find((item) => item.name === params.roleName) || null;
+  }
+
+  if (!role) {
+    return {
+      deleted: false,
+      roleId: params.roleId || null,
+    };
+  }
+
+  const roleId = role.id;
+
+  if (!role.editable) {
+    throw new Error(`Bot cannot delete role: ${role.name}`);
+  }
+
+  await role.delete("Tournament team access removed");
+
+  return {
+    deleted: true,
+    roleId,
   };
 }
 
@@ -410,10 +456,14 @@ async function processTeamAccessRemove(event: BotEvent) {
     memberDiscordIds: payload.memberDiscordIds || [],
   });
 
-  const channelLock = await lockTeamChannel({
+  const channelDeletion = await deleteTeamVoiceChannel({
     channelId: payload.channelId,
     channelName: payload.channelName,
+  });
+
+  const roleDeletion = await deleteTeamRole({
     roleId: payload.roleId,
+    roleName: payload.roleName,
   });
 
   return {
@@ -421,7 +471,10 @@ async function processTeamAccessRemove(event: BotEvent) {
     channelId: payload.channelId,
     removed: roleRemoval.removed,
     failed: roleRemoval.failed,
-    channelLocked: channelLock.locked,
+    channelDeleted: channelDeletion.deleted,
+    deletedChannelId: channelDeletion.channelId,
+    roleDeleted: roleDeletion.deleted,
+    deletedRoleId: roleDeletion.roleId,
   };
 }
 

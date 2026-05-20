@@ -11,6 +11,7 @@ type AdminTabNavigationProps = {
 
 const tabs: AdminTab[] = [
   { label: "Overview", value: "overview" },
+  { label: "Bot", value: "bot" },
   { label: "Announcements", value: "announcements" },
   { label: "Tournaments", value: "tournaments" },
   { label: "Registrations", value: "registrations" },

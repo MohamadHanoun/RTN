@@ -22,6 +22,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { adminModules } from "@/data/admin";
 import { prisma } from "@/lib/prisma";
+import AdminBotEventsPanel from "@/components/AdminBotEventsPanel";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,6 +49,7 @@ type AdminOverviewItem = {
 
 const allowedTabs = [
   "overview",
+  "bot",
   "announcements",
   "tournaments",
   "registrations",
@@ -248,6 +250,13 @@ async function renderAdminTab(
       </section>
     );
   }
+    if (activeTab === "bot") {
+      return (
+        <section className="mx-auto max-w-[1440px] px-6 pb-16 lg:px-10">
+          <AdminBotEventsPanel />
+        </section>
+      );
+    }
 
   if (activeTab === "announcements") {
     return (
