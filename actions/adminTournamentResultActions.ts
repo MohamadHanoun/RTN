@@ -52,10 +52,19 @@ async function requireAdmin(): Promise<AdminTournamentActionResult | null> {
   }
 
   if (!sessionUser.isAdmin) {
-    return fail("Only RTN admins can manage tournament results.");
+    return fail("Only Ascendra admins can manage tournament results.");
   }
 
   return null;
+}
+
+function revalidateResultViews(tournamentId: string) {
+  revalidatePath("/admin");
+  revalidatePath("/leaderboard");
+  revalidatePath("/stats");
+  revalidatePath("/profile");
+  revalidatePath(`/tournaments/${tournamentId}`);
+  revalidatePath(`/admin/tournaments/${tournamentId}`);
 }
 
 export async function saveTournamentResultInline(
@@ -106,8 +115,31 @@ export async function saveTournamentResultInline(
     return fail("This team is not registered for this tournament.");
   }
 
-  if (!["registered", "approved"].includes(registration.status)) {
-    return fail("Only registered or approved teams can receive results.");
+  if (registration.status !== "approved") {
+    return fail("Only approved teams can receive tournament results.");
+  }
+
+  const placementOwner = await prisma.tournamentResult.findFirst({
+    where: {
+      tournamentId,
+      placement,
+      NOT: {
+        teamId,
+      },
+    },
+    include: {
+      team: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (placementOwner) {
+    return fail(
+      `Placement #${placement} is already assigned to ${placementOwner.team.name}.`,
+    );
   }
 
   await prisma.tournamentResult.upsert({
@@ -131,13 +163,10 @@ export async function saveTournamentResultInline(
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/leaderboard");
-  revalidatePath("/stats");
-  revalidatePath(`/tournaments/${tournamentId}`);
+  revalidateResultViews(tournamentId);
 
   return success(
-    `${registration.team.name} result saved with ${points} tournament points.`,
+    `${registration.team.name} saved as #${placement} with ${points} tournament points.`,
   );
 }
 
@@ -176,13 +205,7 @@ export async function deleteTournamentResultInline(
     },
   });
 
-  revalidatePath("/admin");
-  revalidatePath("/leaderboard");
-  revalidatePath("/stats");
-
-  if (tournamentId) {
-    revalidatePath(`/tournaments/${tournamentId}`);
-  }
+  revalidateResultViews(tournamentId || result.tournamentId);
 
   return success(`${result.team.name} result deleted.`);
 }

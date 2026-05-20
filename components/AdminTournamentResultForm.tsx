@@ -16,26 +16,33 @@ type TournamentRegistrationItem = {
   };
 };
 
+type ExistingResultItem = {
+  teamId: string;
+  placement: number;
+  points: number;
+};
+
 type AdminTournamentResultFormProps = {
   tournamentId: string;
   registrations: TournamentRegistrationItem[];
+  results: ExistingResultItem[];
 };
 
 const presets = [
   {
-    label: "1st place",
+    label: "Champion",
     placement: 1,
     points: 10,
-    note: "Winner",
+    note: "Champion",
   },
   {
-    label: "2nd place",
+    label: "Runner-up",
     placement: 2,
     points: 7,
-    note: "Second place",
+    note: "Runner-up",
   },
   {
-    label: "3rd place",
+    label: "Third place",
     placement: 3,
     points: 5,
     note: "Third place",
@@ -56,18 +63,98 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <span className="text-sm font-bold text-gray-200">{children}</span>;
 }
 
+function getNextPlacement(results: ExistingResultItem[]) {
+  if (results.length === 0) {
+    return 1;
+  }
+
+  const usedPlacements = new Set(results.map((result) => result.placement));
+  let placement = 1;
+
+  while (usedPlacements.has(placement)) {
+    placement += 1;
+  }
+
+  return placement;
+}
+
+function getSuggestedPoints(placement: number) {
+  if (placement === 1) {
+    return 10;
+  }
+
+  if (placement === 2) {
+    return 7;
+  }
+
+  if (placement === 3) {
+    return 5;
+  }
+
+  return 1;
+}
+
+function getSuggestedNote(placement: number) {
+  if (placement === 1) {
+    return "Champion";
+  }
+
+  if (placement === 2) {
+    return "Runner-up";
+  }
+
+  if (placement === 3) {
+    return "Third place";
+  }
+
+  return "Participation";
+}
+
 export default function AdminTournamentResultForm({
   tournamentId,
   registrations,
+  results,
 }: AdminTournamentResultFormProps) {
-  const [placement, setPlacement] = useState(1);
-  const [points, setPoints] = useState(10);
-  const [note, setNote] = useState("Winner");
+  const nextPlacement = getNextPlacement(results);
+
+  const [placement, setPlacement] = useState(nextPlacement);
+  const [points, setPoints] = useState(getSuggestedPoints(nextPlacement));
+  const [note, setNote] = useState(getSuggestedNote(nextPlacement));
+
+  const existingResultTeamIds = new Set(results.map((result) => result.teamId));
+
+  const options = registrations.map((registration) => {
+    const alreadyHasResult = existingResultTeamIds.has(registration.teamId);
+
+    return {
+      value: registration.teamId,
+      label: alreadyHasResult
+        ? `${registration.team.name} · update result`
+        : registration.team.name,
+      description: `${registration.team.game} · ${registration.status}${
+        alreadyHasResult ? " · result saved" : ""
+      }`,
+    };
+  });
 
   function applyPreset(preset: (typeof presets)[number]) {
     setPlacement(preset.placement);
     setPoints(preset.points);
     setNote(preset.note);
+  }
+
+  function applyNextAvailablePlacement() {
+    const availablePlacement = getNextPlacement(results);
+
+    setPlacement(availablePlacement);
+    setPoints(getSuggestedPoints(availablePlacement));
+    setNote(getSuggestedNote(availablePlacement));
+  }
+
+  function handlePlacementChange(value: number) {
+    setPlacement(value);
+    setPoints(getSuggestedPoints(value));
+    setNote(getSuggestedNote(value));
   }
 
   return (
@@ -76,7 +163,7 @@ export default function AdminTournamentResultForm({
       buttonLabel="Save result"
       pendingLabel="Saving result..."
       variant="success"
-      className="grid gap-4"
+      className="grid gap-5"
     >
       <input type="hidden" name="tournamentId" value={tournamentId} />
 
@@ -86,17 +173,13 @@ export default function AdminTournamentResultForm({
         <CustomSelect
           name="teamId"
           required
-          placeholder="Select team"
-          options={registrations.map((registration) => ({
-            value: registration.teamId,
-            label: registration.team.name,
-            description: `${registration.team.game} · ${registration.status}`,
-          }))}
+          placeholder="Select approved team"
+          options={options}
         />
       </label>
 
       <div className="grid gap-2">
-        <FieldLabel>Result preset</FieldLabel>
+        <FieldLabel>Quick result presets</FieldLabel>
 
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {presets.map((preset) => {
@@ -125,6 +208,14 @@ export default function AdminTournamentResultForm({
         </div>
       </div>
 
+      <button
+        type="button"
+        onClick={applyNextAvailablePlacement}
+        className="w-fit rounded-xl border border-violet-400/25 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-200 transition hover:bg-violet-500/20"
+      >
+        Use next available placement
+      </button>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-2">
           <FieldLabel>Placement</FieldLabel>
@@ -135,7 +226,9 @@ export default function AdminTournamentResultForm({
             min="1"
             required
             value={placement}
-            onChange={(event) => setPlacement(Number(event.target.value))}
+            onChange={(event) =>
+              handlePlacementChange(Number(event.target.value))
+            }
             className={inputClass()}
           />
         </label>
@@ -162,7 +255,7 @@ export default function AdminTournamentResultForm({
           name="note"
           value={note}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Optional note, example: Winner, second place, participation..."
+          placeholder="Optional note, example: Champion, runner-up, participation..."
           className={inputClass()}
         />
       </label>
