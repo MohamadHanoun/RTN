@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 type CreateRealtimeEventInput = {
@@ -5,7 +7,7 @@ type CreateRealtimeEventInput = {
   audience?: "public" | "admin";
   entityType?: string;
   entityId?: string;
-  payload?: Record<string, unknown>;
+  payload?: Prisma.InputJsonValue;
 };
 
 export async function createRealtimeEvent({
@@ -13,7 +15,7 @@ export async function createRealtimeEvent({
   audience = "public",
   entityType,
   entityId,
-  payload = {},
+  payload,
 }: CreateRealtimeEventInput) {
   try {
     await prisma.realtimeEvent.create({
@@ -22,10 +24,28 @@ export async function createRealtimeEvent({
         audience,
         entityType,
         entityId,
-        payload,
+        payload: payload ?? {},
       },
     });
   } catch (error) {
     console.error("[RealtimeEvent] Failed to create event:", error);
+  }
+}
+
+export async function cleanupOldRealtimeEvents(daysToKeep = 7) {
+  try {
+    const deleteBefore = new Date();
+
+    deleteBefore.setDate(deleteBefore.getDate() - daysToKeep);
+
+    await prisma.realtimeEvent.deleteMany({
+      where: {
+        createdAt: {
+          lt: deleteBefore,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("[RealtimeEvent] Failed to cleanup events:", error);
   }
 }
