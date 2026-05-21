@@ -25,59 +25,87 @@ export function useRealtimeEvents({
 }: UseRealtimeEventsOptions) {
   const cursorRef = useRef<string | null>(null);
   const onEventsRef = useRef(onEvents);
+  const isFetchingRef = useRef(false);
 
   onEventsRef.current = onEvents;
 
   useEffect(() => {
     let isActive = true;
 
-    async function fetchEvents() {
-      if (document.visibilityState !== "visible") {
+    async function fetchEvents(force = false) {
+      if (!force && document.visibilityState !== "visible") {
         return;
       }
 
-      const params = new URLSearchParams({
-        audience,
-      });
-
-      if (cursorRef.current) {
-        params.set("after", cursorRef.current);
-      }
-
-      const response = await fetch(
-        `/api/realtime/events?${params.toString()}`,
-        {
-          cache: "no-store",
-          credentials: "same-origin",
-        },
-      );
-
-      if (!response.ok) {
+      if (isFetchingRef.current) {
         return;
       }
 
-      const data = await response.json();
+      isFetchingRef.current = true;
 
-      if (!isActive) {
-        return;
-      }
+      try {
+        const params = new URLSearchParams({
+          audience,
+        });
 
-      if (data.cursor) {
-        cursorRef.current = data.cursor;
-      }
+        if (cursorRef.current) {
+          params.set("after", cursorRef.current);
+        }
 
-      if (Array.isArray(data.events) && data.events.length > 0) {
-        onEventsRef.current(data.events);
+        const response = await fetch(
+          `/api/realtime/events?${params.toString()}`,
+          {
+            cache: "no-store",
+            credentials: "same-origin",
+          },
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!isActive) {
+          return;
+        }
+
+        if (data.cursor) {
+          cursorRef.current = data.cursor;
+        }
+
+        if (Array.isArray(data.events) && data.events.length > 0) {
+          onEventsRef.current(data.events);
+        }
+      } finally {
+        isFetchingRef.current = false;
       }
     }
 
-    fetchEvents();
+    fetchEvents(true);
 
-    const interval = window.setInterval(fetchEvents, intervalSeconds * 1000);
+    const interval = window.setInterval(() => {
+      fetchEvents(false);
+    }, intervalSeconds * 1000);
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        fetchEvents(true);
+      }
+    }
+
+    function handleFocus() {
+      fetchEvents(true);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       isActive = false;
       window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
   }, [audience, intervalSeconds]);
 }

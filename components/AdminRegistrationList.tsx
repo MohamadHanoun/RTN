@@ -6,6 +6,7 @@ import {
 import InlineAdminRegistrationForm from "@/components/InlineAdminRegistrationForm";
 import ProfileNotice from "@/components/ProfileNotice";
 import { prisma } from "@/lib/prisma";
+import AdminRegistrationsRealtime from "@/components/AdminRegistrationsRealtime";
 
 type AdminRegistrationListProps = {
   message?: string;
@@ -254,6 +255,7 @@ export default async function AdminRegistrationList({
   return (
     <section className="grid gap-6">
       <ProfileNotice message={message} error={error} />
+      <AdminRegistrationsRealtime />
 
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
