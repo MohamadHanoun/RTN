@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { createRealtimeEvent } from "@/lib/realtime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,6 +74,19 @@ export async function POST(request: Request) {
       "Current bot process uptime in milliseconds.",
     ),
   ]);
+
+  await createRealtimeEvent({
+    type: "bot.heartbeat",
+    audience: "admin",
+    entityType: "bot",
+    entityId: "discord-bot",
+    payload: {
+      botTag: String(body.botTag || "Unknown"),
+      guildId: String(body.guildId || process.env.DISCORD_GUILD_ID || ""),
+      uptimeMs: String(body.uptimeMs || 0),
+      heartbeatAt: now.toISOString(),
+    },
+  });
 
   return NextResponse.json({
     ok: true,
