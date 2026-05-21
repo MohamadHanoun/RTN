@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createRealtimeEvent } from "@/lib/realtime";
 
 export type AdminTournamentActionResult = {
   ok: boolean;
@@ -214,6 +215,18 @@ export async function createTournamentInline(
     },
   });
 
+  await createRealtimeEvent({
+    type: "tournament.created",
+    audience: "public",
+    entityType: "tournament",
+    entityId: tournament.id,
+    payload: {
+      tournamentId: tournament.id,
+      title: tournament.title,
+      game: tournament.game,
+    },
+  });
+
   revalidatePath("/admin");
   revalidatePath("/tournaments");
 
@@ -259,6 +272,16 @@ export async function updateTournamentInline(
     data: validation.data,
   });
 
+  await createRealtimeEvent({
+    type: "tournament.updated",
+    audience: "public",
+    entityType: "tournament",
+    entityId: tournament.id,
+    payload: {
+      tournamentId: tournament.id,
+    },
+  });
+
   revalidatePath("/admin");
   revalidatePath("/tournaments");
   revalidatePath(`/tournaments/${tournament.id}`);
@@ -295,6 +318,17 @@ export async function deleteTournamentInline(
   await prisma.tournament.delete({
     where: {
       id: tournament.id,
+    },
+  });
+
+  await createRealtimeEvent({
+    type: "tournament.deleted",
+    audience: "public",
+    entityType: "tournament",
+    entityId: tournament.id,
+    payload: {
+      tournamentId: tournament.id,
+      title: tournament.title,
     },
   });
 
@@ -348,6 +382,17 @@ async function setTournamentRegistrationStatus(
       id: tournament.id,
     },
     data: {
+      registrationStatus,
+    },
+  });
+
+  await createRealtimeEvent({
+    type: "tournament.registrationStatus.updated",
+    audience: "public",
+    entityType: "tournament",
+    entityId: tournament.id,
+    payload: {
+      tournamentId: tournament.id,
       registrationStatus,
     },
   });
@@ -419,6 +464,17 @@ async function setTournamentStatus(
       id: tournament.id,
     },
     data: {
+      status,
+    },
+  });
+
+  await createRealtimeEvent({
+    type: "tournament.status.updated",
+    audience: "public",
+    entityType: "tournament",
+    entityId: tournament.id,
+    payload: {
+      tournamentId: tournament.id,
       status,
     },
   });

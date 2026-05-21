@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createRealtimeEvent } from "@/lib/realtime";
 
 export type AdminRegistrationActionResult = {
   ok: boolean;
@@ -201,6 +202,30 @@ export async function approveRegistrationInline(
     });
   });
 
+  await Promise.all([
+    createRealtimeEvent({
+      type: "registration.approved",
+      audience: "admin",
+      entityType: "registration",
+      entityId: registration.id,
+      payload: {
+        registrationId: registration.id,
+        tournamentId: registration.tournamentId,
+        teamId: registration.teamId,
+        teamName: registration.team.name,
+      },
+    }),
+    createRealtimeEvent({
+      type: "tournament.registration.updated",
+      audience: "public",
+      entityType: "tournament",
+      entityId: registration.tournamentId,
+      payload: {
+        tournamentId: registration.tournamentId,
+      },
+    }),
+  ]);
+
   revalidatePath("/admin");
   revalidatePath(`/tournaments/${registration.tournamentId}`);
   revalidatePath("/profile");
@@ -299,6 +324,31 @@ export async function rejectRegistrationInline(
     });
   });
 
+  await Promise.all([
+    createRealtimeEvent({
+      type: "registration.rejected",
+      audience: "admin",
+      entityType: "registration",
+      entityId: registration.id,
+      payload: {
+        registrationId: registration.id,
+        tournamentId: registration.tournamentId,
+        teamId: registration.teamId,
+        teamName: registration.team.name,
+        rejectionReason,
+      },
+    }),
+    createRealtimeEvent({
+      type: "tournament.registration.updated",
+      audience: "public",
+      entityType: "tournament",
+      entityId: registration.tournamentId,
+      payload: {
+        tournamentId: registration.tournamentId,
+      },
+    }),
+  ]);
+
   revalidatePath("/admin");
   revalidatePath(`/tournaments/${registration.tournamentId}`);
   revalidatePath("/profile");
@@ -390,6 +440,30 @@ export async function cancelRegistrationInline(
       },
     });
   });
+
+  await Promise.all([
+    createRealtimeEvent({
+      type: "registration.cancelled",
+      audience: "admin",
+      entityType: "registration",
+      entityId: registration.id,
+      payload: {
+        registrationId: registration.id,
+        tournamentId: registration.tournamentId,
+        teamId: registration.teamId,
+        teamName: registration.team.name,
+      },
+    }),
+    createRealtimeEvent({
+      type: "tournament.registration.updated",
+      audience: "public",
+      entityType: "tournament",
+      entityId: registration.tournamentId,
+      payload: {
+        tournamentId: registration.tournamentId,
+      },
+    }),
+  ]);
 
   revalidatePath("/admin");
   revalidatePath(`/tournaments/${registration.tournamentId}`);
