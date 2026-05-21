@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-
+import { createRealtimeEvent } from "@/lib/realtime";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -158,6 +158,19 @@ export async function POST(request: Request) {
       error,
       lockedAt: null,
       processedAt: isFinalStatus(status) ? new Date() : null,
+    },
+  });
+
+  await createRealtimeEvent({
+    type: "bot.event.updated",
+    audience: "admin",
+    entityType: "botEvent",
+    entityId: updatedEvent.id,
+    payload: {
+      botEventId: updatedEvent.id,
+      botEventType: updatedEvent.type,
+      status: updatedEvent.status,
+      error: updatedEvent.error,
     },
   });
 
