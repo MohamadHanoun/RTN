@@ -1,0 +1,12 @@
+services:
+  ascendra-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+
+    container_name: ascendra-bot
+
+    env_file:
+      - .env.bot
+
+    restart: unless-stopped
