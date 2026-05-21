@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_ATTEMPTS = 3;
+const STALE_PROCESSING_MINUTES = 2;
+
 function isAuthorized(request: Request) {
   const authHeader = request.headers.get("authorization");
 
@@ -15,6 +18,35 @@ function isAuthorized(request: Request) {
   const token = authHeader.replace("Bearer ", "");
 
   return token === process.env.BOT_API_TOKEN;
+}
+
+function getStaleProcessingDate() {
+  const date = new Date();
+
+  date.setMinutes(date.getMinutes() - STALE_PROCESSING_MINUTES);
+
+  return date;
+}
+
+async function recoverStaleProcessingEvents() {
+  const staleDate = getStaleProcessingDate();
+
+  await prisma.botEvent.updateMany({
+    where: {
+      status: "processing",
+      lockedAt: {
+        lt: staleDate,
+      },
+      attempts: {
+        lt: MAX_ATTEMPTS,
+      },
+    },
+    data: {
+      status: "queued",
+      lockedAt: null,
+      error: "Recovered from stale processing state.",
+    },
+  });
 }
 
 export async function GET(request: Request) {
@@ -30,13 +62,15 @@ export async function GET(request: Request) {
     );
   }
 
+  await recoverStaleProcessingEvents();
+
   const events = await prisma.botEvent.findMany({
     where: {
       status: {
         in: ["queued", "failed"],
       },
       attempts: {
-        lt: 3,
+        lt: MAX_ATTEMPTS,
       },
     },
     orderBy: [
@@ -67,6 +101,9 @@ export async function GET(request: Request) {
       },
       status: {
         in: ["queued", "failed"],
+      },
+      attempts: {
+        lt: MAX_ATTEMPTS,
       },
     },
     data: {
