@@ -22,20 +22,16 @@ function isAuthorized(request: Request) {
 
 function getStaleProcessingDate() {
   const date = new Date();
-
   date.setMinutes(date.getMinutes() - STALE_PROCESSING_MINUTES);
-
   return date;
 }
 
 async function recoverStaleProcessingEvents() {
-  const staleDate = getStaleProcessingDate();
-
   await prisma.botEvent.updateMany({
     where: {
       status: "processing",
       lockedAt: {
-        lt: staleDate,
+        lt: getStaleProcessingDate(),
       },
       attempts: {
         lt: MAX_ATTEMPTS,
